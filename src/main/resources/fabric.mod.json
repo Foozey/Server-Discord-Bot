@@ -1,0 +1,35 @@
+{
+	"schemaVersion": 1,
+	"id": "server-discord-bot",
+	"version": "${version}",
+	"name": "Server Discord Bot",
+	"description": "A Minecraft mod that links your server with a discord bot.",
+	"authors": [
+		"Fooze, Zachary"
+	],
+	"contact": {
+		"homepage": "https://modrinth.com/mod/server-discord-bot",
+		"sources": "https://github.com/foozey/server-discord-bot"
+	},
+	"license": "MIT",
+	"icon": "assets/server-discord-bot/icon.png",
+	"environment": "server",
+	"entrypoints": {
+		"server": [
+			{
+				"value": "com.fooze.serverdiscordbot.ServerDiscordBot",
+				"adapter": "kotlin"
+			}
+		]
+	},
+	"mixins": [
+		"server-discord-bot.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.17.2",
+		"minecraft": "~1.21.8",
+		"java": ">=21",
+		"fabric-api": "*",
+		"fabric-language-kotlin": "*"
+	}
+}
