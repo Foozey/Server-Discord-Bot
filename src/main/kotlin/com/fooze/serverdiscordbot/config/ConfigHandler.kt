@@ -24,6 +24,10 @@ object ConfigHandler {
     }
 
     fun save() {
+        if (!configFile.parentFile.exists()) {
+            configFile.parentFile.mkdirs()
+        }
+
         val text = json.encodeToString(ModConfig.serializer(), config)
         configFile.writeText(text)
     }
