@@ -1,6 +1,7 @@
 package com.fooze.serverdiscordbot
 
 import com.fooze.serverdiscordbot.config.ConfigHandler
+import com.fooze.serverdiscordbot.feature.Announcer
 import dev.kord.core.Kord
 import kotlinx.coroutines.*
 import net.fabricmc.api.DedicatedServerModInitializer
@@ -10,40 +11,38 @@ import org.slf4j.LoggerFactory
 object ServerDiscordBot : DedicatedServerModInitializer {
 	const val MOD_ID = "server-discord-bot"
 	private val logger = LoggerFactory.getLogger(MOD_ID)
-	private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO + CoroutineName(MOD_ID))
-	private var kord: Kord? = null
+	private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
 	override fun onInitializeServer() {
 		ConfigHandler.load()
 		val config = ConfigHandler.config
 
-		if (config.botToken.isBlank()) {
-			logger.warn("Bot token missing! Add it to config/server-discord-bot.json")
-			return
-		}
+		when {
+			config.botToken.isBlank() -> {
+				logger.warn("Bot token missing! Add it to config/server-discord-bot.json")
+				return
+			}
 
-		if (config.channelId.isBlank()) {
-			logger.warn("Channel ID missing! Add it to config/server-discord-bot.json")
-			return
+			config.channelId.isBlank() -> {
+				logger.warn("Channel ID missing! Add it to config/server-discord-bot.json")
+				return
+			}
 		}
 
 		scope.launch {
 			runCatching {
 				val bot = Kord(config.botToken)
-				kord = bot
+				Announcer.load(scope, bot, config, logger)
 				bot.login()
-			}.onFailure { throwable ->
-				logger.error("Failed to login to Discord", throwable)
+			}.onFailure {
+				logger.error("Failed to login to Discord", it)
 			}
 		}
 
 		ServerLifecycleEvents.SERVER_STOPPING.register {
 			scope.cancel()
-			kord = null
 		}
 
 		logger.info("Initialized successfully")
-
-		// TODO: Load features here
 	}
 }
