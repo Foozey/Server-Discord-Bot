@@ -1,7 +1,8 @@
 plugins {
 	id 'fabric-loom' version "${loom_version}"
 	id 'maven-publish'
-	id "org.jetbrains.kotlin.jvm" version "2.2.10"
+	id 'org.jetbrains.kotlin.jvm' version '2.2.10'
+	id 'org.jetbrains.kotlin.plugin.serialization' version '2.2.10'
 }
 
 version = project.mod_version
@@ -31,6 +32,9 @@ dependencies {
 
 	// Kord
 	implementation "dev.kord:kord-core:${project.kord_version}"
+
+	// Serialization
+	implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:${project.serialization_version}"
 }
 
 processResources {
