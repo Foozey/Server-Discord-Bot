@@ -33,8 +33,9 @@ dependencies {
 	// Kord
 	implementation "dev.kord:kord-core:${project.kord_version}"
 
-	// Serialization
+	// Kotlin
 	implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:${project.serialization_version}"
+	implementation "org.jetbrains.kotlinx:kotlinx-datetime:${project.datetime_version}"
 }
 
 processResources {
