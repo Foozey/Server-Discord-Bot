@@ -1,11 +1,10 @@
 package com.fooze.serverdiscordbot.config
 
-import com.fooze.serverdiscordbot.ServerDiscordBot
 import kotlinx.serialization.json.Json
 import java.io.File
 
 object ConfigHandler {
-    private val configFile = File("config/" + ServerDiscordBot.MOD_ID + ".json")
+    private val configFile = File("config/server-discord-bot.json")
 
     private val json = Json {
         encodeDefaults = true
@@ -15,20 +14,15 @@ object ConfigHandler {
     var config: ModConfig = ModConfig()
 
     fun load() {
-        if (configFile.exists()) {
-            val text = configFile.readText()
-            config = json.decodeFromString(ModConfig.serializer(), text)
-        } else {
-            save()
-        }
+       if (configFile.exists()) {
+           config = json.decodeFromString(configFile.readText())
+       } else {
+           save()
+       }
     }
 
     fun save() {
-        if (!configFile.parentFile.exists()) {
-            configFile.parentFile.mkdirs()
-        }
-
-        val text = json.encodeToString(ModConfig.serializer(), config)
-        configFile.writeText(text)
+        configFile.parentFile.mkdirs()
+        configFile.writeText(json.encodeToString(config))
     }
 }

@@ -11,7 +11,6 @@ import net.minecraft.server.MinecraftServer
 import org.slf4j.LoggerFactory
 
 object ServerDiscordBot : DedicatedServerModInitializer {
-	const val MOD_ID = "server-discord-bot"
 	private val logger = LoggerFactory.getLogger("Server Discord Bot")
 	private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 	var minecraftServer: MinecraftServer? = null
