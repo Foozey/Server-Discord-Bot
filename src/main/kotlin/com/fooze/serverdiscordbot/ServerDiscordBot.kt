@@ -2,16 +2,19 @@ package com.fooze.serverdiscordbot
 
 import com.fooze.serverdiscordbot.config.ConfigHandler
 import com.fooze.serverdiscordbot.feature.Announcer
+import com.fooze.serverdiscordbot.feature.StatusCommand
 import dev.kord.core.Kord
 import kotlinx.coroutines.*
 import net.fabricmc.api.DedicatedServerModInitializer
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents
+import net.minecraft.server.MinecraftServer
 import org.slf4j.LoggerFactory
 
 object ServerDiscordBot : DedicatedServerModInitializer {
 	const val MOD_ID = "server-discord-bot"
-	private val logger = LoggerFactory.getLogger(MOD_ID)
+	private val logger = LoggerFactory.getLogger("Server Discord Bot")
 	private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+	var minecraftServer: MinecraftServer? = null
 
 	override fun onInitializeServer() {
 		ConfigHandler.load()
@@ -33,13 +36,19 @@ object ServerDiscordBot : DedicatedServerModInitializer {
 			runCatching {
 				val bot = Kord(config.botToken)
 				Announcer.load(scope, bot, config, logger)
+				StatusCommand.load(scope, bot)
 				bot.login()
 			}.onFailure {
 				logger.error("Failed to login to Discord", it)
 			}
 		}
 
+		ServerLifecycleEvents.SERVER_STARTED.register { server ->
+			minecraftServer = server
+		}
+
 		ServerLifecycleEvents.SERVER_STOPPING.register {
+			minecraftServer = null
 			scope.cancel()
 		}
 
