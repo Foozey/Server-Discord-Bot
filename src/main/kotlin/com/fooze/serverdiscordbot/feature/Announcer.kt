@@ -17,10 +17,12 @@ import org.slf4j.Logger
 
 object Announcer {
     fun load(scope: CoroutineScope, kord: Kord, config: ModConfig, logger: Logger) {
-        suspend fun announce(block: EmbedBuilder.() -> Unit) = runCatching {
-            kord.getChannelOf<TextChannel>(Snowflake(config.channelId))?.createEmbed(block)
-        }.onFailure {
-            logger.error("Failed to send announcement", it)
+        suspend fun announce(block: EmbedBuilder.() -> Unit) {
+            runCatching {
+                kord.getChannelOf<TextChannel>(Snowflake(config.channelId))?.createEmbed(block)
+            }.onFailure {
+                logger.error("Announcement failed! Your channel ID may be invalid", it)
+            }
         }
 
         fun announcePlayerEvent(name: String, message: String, color: Color, description: String? = null) {

@@ -39,7 +39,7 @@ object ServerDiscordBot : DedicatedServerModInitializer {
 				StatusCommand.load(scope, bot)
 				bot.login()
 			}.onFailure {
-				logger.error("Failed to login to Discord", it)
+				logger.error("Discord login failed! Your bot token may be invalid", it)
 			}
 		}
 
