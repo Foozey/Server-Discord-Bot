@@ -60,6 +60,7 @@ object StatusCommand {
             val statusCommand = kord.createGlobalChatInputCommand("status", "Displays the server status")
 
             kord.on<GuildChatInputCommandInteractionCreateEvent> {
+                if (interaction.command.rootName != statusCommand.name) return@on
                 val server = ServerDiscordBot.minecraftServer
 
                 interaction.deferPublicResponse().respond {
