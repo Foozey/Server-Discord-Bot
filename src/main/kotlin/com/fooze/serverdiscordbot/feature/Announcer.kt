@@ -16,10 +16,10 @@ import net.minecraft.stat.Stats
 import org.slf4j.Logger
 
 object Announcer {
-    fun load(scope: CoroutineScope, kord: Kord, config: ModConfig, logger: Logger) {
+    fun load(scope: CoroutineScope, kord: Kord?, config: ModConfig, logger: Logger) {
         suspend fun announce(block: EmbedBuilder.() -> Unit) {
             runCatching {
-                kord.getChannelOf<TextChannel>(Snowflake(config.channelId))?.createEmbed(block)
+                kord?.getChannelOf<TextChannel>(Snowflake(config.channelId))?.createEmbed(block)
             }.onFailure {
                 logger.error("Announcement failed! Your channel ID may be invalid", it)
             }
@@ -41,19 +41,19 @@ object Announcer {
 
         ServerPlayConnectionEvents.JOIN.register { handler, _, _ ->
             val name = handler.player.name.string
-            announcePlayerEvent(name, "joined the game", Color(0x00FF00))
+            announcePlayerEvent(name, "joined the game", Color(0x4CAF50))
         }
 
         ServerPlayConnectionEvents.DISCONNECT.register { handler, _ ->
             val name = handler.player.name.string
-            announcePlayerEvent(name, "left the game", Color(0xFF0000))
+            announcePlayerEvent(name, "left the game", Color(0xEF5350))
         }
 
         ServerLivingEntityEvents.AFTER_DEATH.register { entity, _ ->
             if (entity is ServerPlayerEntity) {
                 val name = entity.name.string
                 val deaths = entity.statHandler.getStat(Stats.CUSTOM.getOrCreateStat(Stats.DEATHS))
-                announcePlayerEvent(name, "died", Color(0xFF0000), "Total deaths: $deaths")
+                announcePlayerEvent(name, "died", Color(0xEF5350), "Total deaths: $deaths")
             }
         }
     }

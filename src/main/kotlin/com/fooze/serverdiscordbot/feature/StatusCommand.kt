@@ -1,24 +1,26 @@
 package com.fooze.serverdiscordbot.feature
 
 import com.fooze.serverdiscordbot.ServerDiscordBot
+import com.fooze.serverdiscordbot.config.ModConfig
 import com.sun.management.OperatingSystemMXBean
-import dev.kord.common.Color
+import dev.kord.common.entity.Snowflake
 import dev.kord.core.Kord
 import dev.kord.core.behavior.interaction.response.respond
+import dev.kord.core.entity.channel.TextChannel
 import dev.kord.core.event.interaction.GuildChatInputCommandInteractionCreateEvent
 import dev.kord.core.on
-import dev.kord.rest.builder.message.EmbedBuilder
 import dev.kord.rest.builder.message.embed
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import net.minecraft.server.MinecraftServer
+import org.slf4j.Logger
 import java.lang.management.ManagementFactory
 import java.time.Instant
 
 object StatusCommand {
     private fun getTicks(server: MinecraftServer, isTps: Boolean): String {
-        val mspt = if (server.tickTimes.isNotEmpty()) server.tickTimes.average() / 1.0e6 else 0.0
-        val tps = if (mspt > 0) (1000.0 / mspt).coerceAtMost(20.0) else 20.0
+        val mspt = server.tickTimes.average() / 1.0E6
+        val tps = (1000.0 / mspt).coerceAtMost(20.0)
         return String.format("%.1f", if (isTps) tps else mspt)
     }
 
@@ -31,8 +33,8 @@ object StatusCommand {
     private fun getRamUsage(): String {
         val runtime = Runtime.getRuntime()
         val used = (runtime.totalMemory() - runtime.freeMemory()) / 1024 / 1024
-        val total = runtime.totalMemory() / 1024 / 1024
-        return "$used MB / $total MB"
+        val max = runtime.maxMemory() / 1024 / 1024
+        return "$used MB / $max MB"
     }
 
     private fun getPlayerCount(server: MinecraftServer): String {
@@ -41,9 +43,9 @@ object StatusCommand {
 
     private fun getPlayerList(server: MinecraftServer): String {
         val players = server.playerManager.playerList
+        if (players.isEmpty()) return ">>> No players online"
         val maxSize = 10
         val remaining = players.size - maxSize
-        if (players.isEmpty()) return ">>> No players online"
 
         return buildString {
             appendLine(">>> ${players.take(maxSize).joinToString("\n") { it.name.string }}")
@@ -51,41 +53,31 @@ object StatusCommand {
         }
     }
 
-    private fun EmbedBuilder.systemField(name: String, value: String?) {
-        field(name, true) { value?.let { "```$it```" } ?: "N/A" }
-    }
-
-    fun load(scope: CoroutineScope, kord: Kord) {
+    fun load(scope: CoroutineScope, kord: Kord?, config: ModConfig, logger: Logger) {
         scope.launch {
-            val statusCommand = kord.createGlobalChatInputCommand("status", "Displays the server status")
+            val statusCommand = runCatching {
+                val channel = kord?.getChannelOf<TextChannel>(Snowflake(config.channelId)) ?: return@launch
+                kord.createGuildChatInputCommand(channel.guildId, "status", "Displays the server status")
+            }.onFailure {
+                logger.error("Status command failed to initialize! Your channel ID may be invalid", it)
+            }.getOrNull() ?: return@launch
 
-            kord.on<GuildChatInputCommandInteractionCreateEvent> {
+            kord?.on<GuildChatInputCommandInteractionCreateEvent> {
                 if (interaction.command.rootName != statusCommand.name) return@on
-                val server = ServerDiscordBot.minecraftServer
+                val server = ServerDiscordBot.minecraftServer ?: return@on
 
                 interaction.deferPublicResponse().respond {
                     embed {
                         title = "Server Status"
-
-                        systemField("State", server?.let { "\uD83D\uDFE2 Online" } ?: "\uD83D\uDD34 Offline")
-                        systemField("TPS", server?.let { getTicks(it, true) })
-                        systemField("MSPT", server?.let { getTicks(it, false) })
-                        systemField("CPU Usage", server?.let { getCpuUsage() })
-                        systemField("RAM Usage", server?.let { getRamUsage() })
-
+                        field("State", true) { "```\uD83D\uDFE2 Online```" }
+                        field("TPS", true) { "```${getTicks(server, true)}```" }
+                        field("MSPT", true) { "```${getTicks(server, false)}```" }
+                        field("CPU Usage", true) { "```${getCpuUsage()}```" }
+                        field("RAM Usage", true) { "```${getRamUsage()}```" }
                         field("")
-
-                        field("Players (${server?.let { getPlayerCount(it) } ?: "N/A"})") {
-                            server?.let { getPlayerList(it) } ?: "N/A"
-                        }
-
+                        field("Players (${getPlayerCount(server)})") { getPlayerList(server) }
                         field("")
-
-                        field("") {
-                            "-# Last updated <t:${Instant.now().epochSecond}:R>, use </status:${statusCommand.id}> to update"
-                        }
-
-                        color = Color(0xFFFF00)
+                        field("") { "-# Last updated <t:${Instant.now().epochSecond}:R>, use </status:${statusCommand.id}> to update" }
                     }
                 }
             }
