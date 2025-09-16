@@ -25,45 +25,68 @@ object ServerDiscordBot : DedicatedServerModInitializer {
 	override fun onInitializeServer() {
 		ConfigHandler.load()
 		val config = ConfigHandler.config
+        val lang = ConfigHandler.lang
 
+        // On server start
 		ServerLifecycleEvents.SERVER_STARTED.register { server ->
 			this.server = server
 
 			if (config.botToken.isBlank()) {
-				logger.warn("Bot token missing! Add it to config/${MOD_ID}.json")
+				logger.warn(lang.logBotTokenMissing)
 				return@register
 			}
 
 			if (config.channelId.isBlank()) {
-				logger.warn("Channel ID missing! Add it to config/${MOD_ID}.json")
+				logger.warn(lang.logChannelIdMissing)
 				return@register
 			}
 
+            // Load the bot
 			scope.launch {
 				runCatching {
 					bot = Kord(config.botToken)
-                    announceServerEvent(bot, config, logger, "started", "online — connect using `${config.serverIp}`", Colors.GREEN)
+
+                    announceServerEvent(
+                        bot = bot,
+                        config = config,
+                        lang = lang,
+                        logger = logger,
+                        title = lang.announceStart,
+                        description = lang.announceStartDescription,
+                        color = Colors.GREEN
+                    )
 
 					// Features
-					Announcer.load(scope, bot, config, logger)
-					StatusCommand.load(bot, config, logger)
-					WhitelistCommand.load(bot, config, logger)
+					Announcer.load(scope, bot, config, lang, logger)
+					StatusCommand.load(bot, config, lang, logger)
+					WhitelistCommand.load(bot, config, lang, logger)
 
                     bot.on<ReadyEvent> {
-                        logger.info("Discord login successful!")
+                        logger.info(lang.logLoginSuccess)
                     }
 
                     bot.login()
 				}.onFailure {
-                    logger.error("Discord login failed! Your bot token may be invalid", it)
+                    logger.error(lang.logLoginFail, it)
 				}
 			}
 		}
 
+        // On server stop
 		ServerLifecycleEvents.SERVER_STOPPING.register {
 			runBlocking {
-                announceServerEvent(bot, config, logger, "stopped", "offline — see you soon!", Colors.RED)
-				bot.shutdown()
+                announceServerEvent(
+                    bot = bot,
+                    config = config,
+                    lang = lang,
+                    logger = logger,
+                    title = lang.announceStop,
+                    description = lang.announceStopDescription,
+                    color = Colors.RED
+                )
+
+                // Shutdown the bot
+                bot.shutdown()
                 bot.resources.httpClient.close()
 			}
 		}

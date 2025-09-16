@@ -1,7 +1,9 @@
 package com.fooze.serverdiscordbot.feature
 
 import com.fooze.serverdiscordbot.ServerDiscordBot
+import com.fooze.serverdiscordbot.config.LangConfig
 import com.fooze.serverdiscordbot.config.ModConfig
+import com.fooze.serverdiscordbot.util.Placeholder
 import com.sun.management.OperatingSystemMXBean
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.Kord
@@ -39,42 +41,53 @@ object StatusCommand {
         return "${server.playerManager.currentPlayerCount} / ${server.playerManager.maxPlayerCount}"
     }
 
-    private fun getPlayerList(server: MinecraftServer): String {
+    private fun getPlayerList(server: MinecraftServer, lang: LangConfig): String {
         val players = server.playerManager.playerList
-        if (players.isEmpty()) return ">>> No players online"
+        if (players.isEmpty()) return ">>> ${lang.statusPlayersNone}"
         val maxSize = 10
         val remaining = players.size - maxSize
+        val values = mapOf("remaining" to remaining.toString())
 
         return buildString {
             appendLine(">>> ${players.take(maxSize).joinToString("\n") { it.name.string }}")
-            if (remaining > 0) append("...and $remaining more")
+            if (remaining > 0) append(Placeholder.replace(lang.statusPlayersMore, values))
         }
     }
 
-    suspend fun load(kord: Kord, config: ModConfig, logger: Logger) {
+    suspend fun load(bot: Kord, config: ModConfig, lang: LangConfig, logger: Logger) {
+        // Create the command
         val statusCommand = runCatching {
-            val channel = kord.getChannelOf<TextChannel>(Snowflake(config.channelId)) ?: return
-            kord.createGuildChatInputCommand(channel.guildId, "status", "Displays the server status")
+            val channel = bot.getChannelOf<TextChannel>(Snowflake(config.channelId)) ?: return
+            bot.createGuildChatInputCommand(channel.guildId, lang.statusCommand, lang.statusCommandInfo)
         }.onFailure {
-            logger.error("Status command failed to initialize! Your channel ID may be invalid", it)
+            logger.error(lang.logStatusFail, it)
         }.getOrNull() ?: return
 
-        kord.on<GuildChatInputCommandInteractionCreateEvent> {
+        // Create the interaction
+        bot.on<GuildChatInputCommandInteractionCreateEvent> {
             if (interaction.command.rootName != statusCommand.name) return@on
             val server = ServerDiscordBot.server
 
+            // Placeholders
+            val values = mapOf(
+                "count" to getPlayerCount(server),
+                "time" to Instant.now().epochSecond.toString(),
+                "id" to statusCommand.id.toString()
+            )
+
+            // Embed formatting
             interaction.deferPublicResponse().respond {
                 embed {
-                    title = "Server Status"
-                    field("State", true) { "```\uD83D\uDFE2 Online```" }
-                    field("TPS", true) { "```${getTicks(server, true)}```" }
-                    field("MSPT", true) { "```${getTicks(server, false)}```" }
-                    field("CPU Usage", true) { "```${getCpuUsage()}```" }
-                    field("RAM Usage", true) { "```${getRamUsage()}```" }
+                    title = lang.statusTitle
+                    field(lang.statusState, true) { "```\uD83D\uDFE2 ${lang.statusStateValue}```" }
+                    field(lang.statusTps, true) { "```${getTicks(server, true)}```" }
+                    field(lang.statusMspt, true) { "```${getTicks(server, false)}```" }
+                    field(lang.statusCpu, true) { "```${getCpuUsage()}```" }
+                    field(lang.statusRam, true) { "```${getRamUsage()}```" }
                     field("")
-                    field("Players (${getPlayerCount(server)})") { getPlayerList(server) }
+                    field(Placeholder.replace(lang.statusPlayers, values)) { getPlayerList(server, lang) }
                     field("")
-                    field("") { "-# Last updated <t:${Instant.now().epochSecond}:R>, use </status:${statusCommand.id}> to update" }
+                    field("") { "-# ${Placeholder.replace(lang.statusUpdate, values)}" }
                 }
             }
         }
