@@ -6,6 +6,7 @@ import kotlinx.serialization.Serializable
 data class ModConfig(
     val botToken: String = "",
     val channelId: String = "",
+    val serverName: String = "",
     val serverIp: String = "",
     val modpackName: String = "",
     val modpackVersion: String = "",

@@ -1,6 +1,8 @@
 package com.fooze.serverdiscordbot.feature
 
 import com.fooze.serverdiscordbot.config.ModConfig
+import com.fooze.serverdiscordbot.config.ServerType
+import com.fooze.serverdiscordbot.util.Colors
 import dev.kord.common.Color
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.Kord
@@ -16,44 +18,53 @@ import net.minecraft.stat.Stats
 import org.slf4j.Logger
 
 object Announcer {
-    fun load(scope: CoroutineScope, kord: Kord?, config: ModConfig, logger: Logger) {
-        suspend fun announce(block: EmbedBuilder.() -> Unit) {
-            runCatching {
-                kord?.getChannelOf<TextChannel>(Snowflake(config.channelId))?.createEmbed(block)
-            }.onFailure {
-                logger.error("Announcement failed! Your channel ID may be invalid", it)
-            }
+    private suspend fun announce(kord: Kord, config: ModConfig, logger: Logger, block: EmbedBuilder.() -> Unit) {
+        runCatching {
+            kord.getChannelOf<TextChannel>(Snowflake(config.channelId))?.createEmbed(block)
+        }.onFailure {
+            logger.error("Announcement failed! Your channel ID may be invalid", it)
         }
+    }
 
-        fun announcePlayerEvent(name: String, message: String, color: Color, description: String? = null) {
-            scope.launch {
-                announce {
-                    author {
-                        this.name = "$name $message"
-                        icon = "https://mc-heads.net/avatar/$name"
-                    }
+    suspend fun announceServerEvent(kord: Kord, config: ModConfig, logger: Logger, state: String, message: String, color: Color) {
+        announce(kord, config, logger) {
+            val serverName = ServerType.getServerName(config, true)
+            title = "Server $state!"
+            description = "$serverName is now $message"
+            this.color = color
+        }
+    }
 
-                    this.color = color
-                    this.description = description
+    private fun announcePlayerEvent(scope: CoroutineScope, kord: Kord, config: ModConfig, logger: Logger, name: String, message: String, description: String?, color: Color) {
+        scope.launch {
+            announce(kord, config, logger) {
+                author {
+                    this.name = "$name $message"
+                    icon = "https://mc-heads.net/avatar/$name"
                 }
+
+                this.description = description
+                this.color = color
             }
         }
+    }
 
+    fun load(scope: CoroutineScope, kord: Kord, config: ModConfig, logger: Logger) {
         ServerPlayConnectionEvents.JOIN.register { handler, _, _ ->
             val name = handler.player.name.string
-            announcePlayerEvent(name, "joined the game", Color(0x4CAF50))
+            announcePlayerEvent(scope, kord, config, logger, name, "joined the game", null, Colors.GREEN)
         }
 
         ServerPlayConnectionEvents.DISCONNECT.register { handler, _ ->
             val name = handler.player.name.string
-            announcePlayerEvent(name, "left the game", Color(0xEF5350))
+            announcePlayerEvent(scope, kord, config, logger, name, "left the game", null, Colors.RED)
         }
 
         ServerLivingEntityEvents.AFTER_DEATH.register { entity, _ ->
             if (entity is ServerPlayerEntity) {
                 val name = entity.name.string
                 val deaths = entity.statHandler.getStat(Stats.CUSTOM.getOrCreateStat(Stats.DEATHS))
-                announcePlayerEvent(name, "died", Color(0xEF5350), "Total deaths: $deaths")
+                announcePlayerEvent(scope, kord, config, logger, name, "died", "Total deaths: $deaths", Colors.RED)
             }
         }
     }

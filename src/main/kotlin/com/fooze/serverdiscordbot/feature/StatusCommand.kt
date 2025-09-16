@@ -10,8 +10,6 @@ import dev.kord.core.entity.channel.TextChannel
 import dev.kord.core.event.interaction.GuildChatInputCommandInteractionCreateEvent
 import dev.kord.core.on
 import dev.kord.rest.builder.message.embed
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import net.minecraft.server.MinecraftServer
 import org.slf4j.Logger
 import java.lang.management.ManagementFactory
@@ -53,32 +51,30 @@ object StatusCommand {
         }
     }
 
-    fun load(scope: CoroutineScope, kord: Kord?, config: ModConfig, logger: Logger) {
-        scope.launch {
-            val statusCommand = runCatching {
-                val channel = kord?.getChannelOf<TextChannel>(Snowflake(config.channelId)) ?: return@launch
-                kord.createGuildChatInputCommand(channel.guildId, "status", "Displays the server status")
-            }.onFailure {
-                logger.error("Status command failed to initialize! Your channel ID may be invalid", it)
-            }.getOrNull() ?: return@launch
+    suspend fun load(kord: Kord, config: ModConfig, logger: Logger) {
+        val statusCommand = runCatching {
+            val channel = kord.getChannelOf<TextChannel>(Snowflake(config.channelId)) ?: return
+            kord.createGuildChatInputCommand(channel.guildId, "status", "Displays the server status")
+        }.onFailure {
+            logger.error("Status command failed to initialize! Your channel ID may be invalid", it)
+        }.getOrNull() ?: return
 
-            kord?.on<GuildChatInputCommandInteractionCreateEvent> {
-                if (interaction.command.rootName != statusCommand.name) return@on
-                val server = ServerDiscordBot.minecraftServer ?: return@on
+        kord.on<GuildChatInputCommandInteractionCreateEvent> {
+            if (interaction.command.rootName != statusCommand.name) return@on
+            val server = ServerDiscordBot.server
 
-                interaction.deferPublicResponse().respond {
-                    embed {
-                        title = "Server Status"
-                        field("State", true) { "```\uD83D\uDFE2 Online```" }
-                        field("TPS", true) { "```${getTicks(server, true)}```" }
-                        field("MSPT", true) { "```${getTicks(server, false)}```" }
-                        field("CPU Usage", true) { "```${getCpuUsage()}```" }
-                        field("RAM Usage", true) { "```${getRamUsage()}```" }
-                        field("")
-                        field("Players (${getPlayerCount(server)})") { getPlayerList(server) }
-                        field("")
-                        field("") { "-# Last updated <t:${Instant.now().epochSecond}:R>, use </status:${statusCommand.id}> to update" }
-                    }
+            interaction.deferPublicResponse().respond {
+                embed {
+                    title = "Server Status"
+                    field("State", true) { "```\uD83D\uDFE2 Online```" }
+                    field("TPS", true) { "```${getTicks(server, true)}```" }
+                    field("MSPT", true) { "```${getTicks(server, false)}```" }
+                    field("CPU Usage", true) { "```${getCpuUsage()}```" }
+                    field("RAM Usage", true) { "```${getRamUsage()}```" }
+                    field("")
+                    field("Players (${getPlayerCount(server)})") { getPlayerList(server) }
+                    field("")
+                    field("") { "-# Last updated <t:${Instant.now().epochSecond}:R>, use </status:${statusCommand.id}> to update" }
                 }
             }
         }

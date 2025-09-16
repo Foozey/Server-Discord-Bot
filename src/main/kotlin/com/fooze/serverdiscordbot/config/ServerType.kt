@@ -3,6 +3,12 @@ package com.fooze.serverdiscordbot.config
 import net.minecraft.server.MinecraftServer
 
 object ServerType {
+    fun getServerName(config: ModConfig, capitalize: Boolean = false): String {
+        return config.serverName.ifBlank {
+            if (capitalize) "The server" else "the server"
+        }
+    }
+
     fun getServerType(config: ModConfig, server: MinecraftServer): String {
         val hasName = config.modpackName.isNotBlank()
         val hasVersion = config.modpackVersion.isNotBlank()
