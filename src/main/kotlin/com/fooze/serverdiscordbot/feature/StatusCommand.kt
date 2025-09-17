@@ -2,11 +2,13 @@ package com.fooze.serverdiscordbot.feature
 
 import com.fooze.serverdiscordbot.config.LangConfig
 import com.fooze.serverdiscordbot.config.ModConfig
+import com.fooze.serverdiscordbot.util.Format
 import com.fooze.serverdiscordbot.util.Placeholder
 import com.sun.management.OperatingSystemMXBean
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.Kord
 import dev.kord.core.behavior.interaction.response.respond
+import dev.kord.core.entity.application.GuildChatInputCommand
 import dev.kord.core.entity.channel.TextChannel
 import dev.kord.core.event.interaction.GuildChatInputCommandInteractionCreateEvent
 import dev.kord.core.on
@@ -17,30 +19,35 @@ import java.lang.management.ManagementFactory
 import java.time.Instant
 
 object StatusCommand {
-    suspend fun load(bot: Kord, config: ModConfig, lang: LangConfig, logger: Logger, server: MinecraftServer) {
+    var statusCommand: GuildChatInputCommand? = null
+
+    suspend fun load(bot: Kord?, config: ModConfig, lang: LangConfig, logger: Logger, server: MinecraftServer) {
         // Create the command
-        val statusCommand = runCatching {
-            val channel = bot.getChannelOf<TextChannel>(Snowflake(config.discordChannelId)) ?: return
+        statusCommand = runCatching {
+            val channel = bot?.getChannelOf<TextChannel>(Snowflake(config.discordChannelId)) ?: return
             bot.createGuildChatInputCommand(channel.guildId, lang.statusCommand, lang.statusCommandInfo)
         }.onFailure {
             logger.error(lang.logStatusFail, it)
         }.getOrNull() ?: return
 
         // Create the interaction
-        bot.on<GuildChatInputCommandInteractionCreateEvent> {
-            if (interaction.command.rootName != statusCommand.name) return@on
+        bot?.on<GuildChatInputCommandInteractionCreateEvent> {
+            if (interaction.command.rootName != statusCommand?.name) return@on
 
             // Placeholders
             val values = mapOf(
+                "status" to lang.statusCommand,
+                "server" to Format.serverName(config, lang, false),
                 "count" to getPlayerCount(server),
                 "time" to Instant.now().epochSecond.toString(),
-                "id" to statusCommand.id.toString()
+                "id" to statusCommand?.id.toString()
             )
 
             // Build the embed
             interaction.deferPublicResponse().respond {
                 embed {
                     title = lang.statusTitle
+                    description = Placeholder.replace(lang.statusDescription, values)
                     field(lang.statusState, true) { "```\uD83D\uDFE2 ${lang.statusStateValue}```" }
                     field(lang.statusTps, true) { "```${getTicks(server, true)}```" }
                     field(lang.statusMspt, true) { "```${getTicks(server, false)}```" }

@@ -20,7 +20,7 @@ import net.minecraft.stat.Stats
 import org.slf4j.Logger
 
 object Announcer {
-    fun load(scope: CoroutineScope, bot: Kord, config: ModConfig, lang: LangConfig, logger: Logger) {
+    fun load(scope: CoroutineScope, bot: Kord?, config: ModConfig, lang: LangConfig, logger: Logger) {
         // On player join
         ServerPlayConnectionEvents.JOIN.register { handler, _, _ ->
             val player = handler.player.name.string
@@ -73,7 +73,7 @@ object Announcer {
 
     // Sends a server announcement to the configured channel
     suspend fun announceServerEvent(
-        bot: Kord,
+        bot: Kord?,
         config: ModConfig,
         lang: LangConfig,
         logger: Logger,
@@ -97,7 +97,7 @@ object Announcer {
 
     // Sends a player announcement to the configured channel
     private suspend fun announcePlayerEvent(
-        bot: Kord,
+        bot: Kord?,
         config: ModConfig,
         lang: LangConfig,
         logger: Logger,
@@ -120,14 +120,14 @@ object Announcer {
 
     // Creates an announcement and sends it to the configured channel
     private suspend fun announce(
-        bot: Kord,
+        bot: Kord?,
         config: ModConfig,
         lang: LangConfig,
         logger: Logger,
         embed: EmbedBuilder.() -> Unit
     ) {
         runCatching {
-            bot.getChannelOf<TextChannel>(Snowflake(config.discordChannelId))?.createEmbed(embed)
+            bot?.getChannelOf<TextChannel>(Snowflake(config.discordChannelId))?.createEmbed(embed)
         }.onFailure {
             logger.error(lang.logAnnounceFail, it)
         }

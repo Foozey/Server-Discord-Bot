@@ -2,6 +2,7 @@ package com.fooze.serverdiscordbot
 
 import com.fooze.serverdiscordbot.config.ConfigHandler
 import com.fooze.serverdiscordbot.feature.Announcer
+import com.fooze.serverdiscordbot.feature.HelpCommand
 import com.fooze.serverdiscordbot.feature.StatusCommand
 import com.fooze.serverdiscordbot.feature.WhitelistCommand
 import com.fooze.serverdiscordbot.util.Colors
@@ -18,8 +19,8 @@ object ServerDiscordBot : DedicatedServerModInitializer {
 	const val MOD_ID = "server-discord-bot"
 	private val logger = LoggerFactory.getLogger(MOD_ID)
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-	private lateinit var bot: Kord
-    private lateinit var server: MinecraftServer
+	private var bot: Kord? = null
+    private var server: MinecraftServer? = null
 
 	override fun onInitializeServer() {
 		ConfigHandler.load()
@@ -59,10 +60,11 @@ object ServerDiscordBot : DedicatedServerModInitializer {
 					Announcer.load(scope, bot, config, lang, logger)
 					StatusCommand.load(bot, config, lang, logger, server)
 					WhitelistCommand.load(bot, config, lang, logger, server)
+                    HelpCommand.load(bot, config, lang, logger)
 
                     // Start the bot
-                    bot.on<ReadyEvent> { logger.info(lang.logLoginSuccess) }
-                    bot.login()
+                    bot?.on<ReadyEvent> { logger.info(lang.logLoginSuccess) }
+                    bot?.login()
 				}.onFailure {
                     logger.error(lang.logLoginFail, it)
 				}
@@ -84,8 +86,8 @@ object ServerDiscordBot : DedicatedServerModInitializer {
                 )
 
                 // Stop the bot
-                bot.shutdown()
-                bot.resources.httpClient.close()
+                bot?.shutdown()
+                bot?.resources?.httpClient?.close()
 			}
 		}
 	}

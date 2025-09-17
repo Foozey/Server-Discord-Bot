@@ -19,6 +19,7 @@ data class LangConfig(
     val statusCommand: String = "status",
     val statusCommandInfo: String = "Displays the server status",
     val statusTitle: String = "Server Status",
+    val statusDescription: String = "Displaying server status for {server}",
     val statusState: String = "State",
     val statusStateValue: String = "Online",
     val statusTps: String = "TPS",
@@ -28,7 +29,7 @@ data class LangConfig(
     val statusPlayers: String = "Players ({count})",
     val statusPlayersNone: String = "No players online",
     val statusPlayersMore: String = "...and {remaining} more",
-    val statusUpdate: String = "Last updated <t:{time}:R>, use </status:{id}> to update",
+    val statusUpdate: String = "Last updated <t:{time}:R>, use </{status}:{id}> to update",
 
     // Whitelist Command
     val whitelistCommand: String = "whitelist",
@@ -41,6 +42,16 @@ data class LangConfig(
     val whitelistAddTitle: String = "Welcome to {server}!",
     val whitelistAddDescription: String = "To join, make sure you're playing **{type}**, and connect using the IP below:",
     val whitelistIpMissing: String = "Unavailable",
+
+    // Help Command
+    val helpCommand: String = "help",
+    val helpCommandInfo: String = "Displays a list of commands",
+    val helpTitle: String = "Command Help",
+    val helpDescription: String = "Displaying a list of commands for {server}",
+    val helpStatusTitle: String = "</{status}:{statusId}>",
+    val helpStatusDescription: String = "Displays the server status",
+    val helpWhitelistTitle: String = "</{whitelist}:{whitelistId}>",
+    val helpWhitelistDescription: String = "Adds a player to the whitelist\n-# Usage: /{whitelist} <player>",
 
     // Other
     val defaultServerName: String = "The server",

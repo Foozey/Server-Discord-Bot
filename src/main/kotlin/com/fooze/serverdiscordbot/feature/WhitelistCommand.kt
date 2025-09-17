@@ -8,6 +8,7 @@ import com.fooze.serverdiscordbot.util.Placeholder
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.Kord
 import dev.kord.core.behavior.interaction.response.respond
+import dev.kord.core.entity.application.GuildChatInputCommand
 import dev.kord.core.entity.channel.TextChannel
 import dev.kord.core.event.interaction.GuildChatInputCommandInteractionCreateEvent
 import dev.kord.core.on
@@ -18,10 +19,12 @@ import net.minecraft.server.WhitelistEntry
 import org.slf4j.Logger
 
 object WhitelistCommand {
-    suspend fun load(bot: Kord, config: ModConfig, lang: LangConfig, logger: Logger, server: MinecraftServer) {
+    var whitelistCommand: GuildChatInputCommand? = null
+
+    suspend fun load(bot: Kord?, config: ModConfig, lang: LangConfig, logger: Logger, server: MinecraftServer) {
         // Create the command
-        val whitelistCommand = runCatching {
-            val channel = bot.getChannelOf<TextChannel>(Snowflake(config.discordChannelId)) ?: return
+        whitelistCommand = runCatching {
+            val channel = bot?.getChannelOf<TextChannel>(Snowflake(config.discordChannelId)) ?: return
 
             bot.createGuildChatInputCommand(channel.guildId, lang.whitelistCommand, lang.whitelistCommandInfo) {
                 string(lang.whitelistCommandPlayer, lang.whitelistCommandPlayerInfo) {
@@ -33,8 +36,8 @@ object WhitelistCommand {
         }.getOrNull() ?: return
 
         // Create the interaction
-        bot.on<GuildChatInputCommandInteractionCreateEvent> {
-            if (interaction.command.rootName != whitelistCommand.name) return@on
+        bot?.on<GuildChatInputCommandInteractionCreateEvent> {
+            if (interaction.command.rootName != whitelistCommand?.name) return@on
             val player = interaction.command.strings[lang.whitelistCommandPlayer]
             val profile = server.gameProfileRepo.findProfileByName(player).orElse(null)
 
