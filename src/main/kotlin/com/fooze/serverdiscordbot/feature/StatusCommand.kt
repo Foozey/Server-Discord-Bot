@@ -36,10 +36,10 @@ object StatusCommand {
 
             // Placeholders
             val values = mapOf(
-                "status" to lang.statusCommand,
                 "server" to Format.serverName(config, lang, false),
                 "count" to getPlayerCount(server),
                 "time" to Instant.now().epochSecond.toString(),
+                "status" to lang.statusCommand,
                 "id" to statusCommand?.id.toString()
             )
 
