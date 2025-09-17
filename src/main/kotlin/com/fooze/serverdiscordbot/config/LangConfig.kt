@@ -6,9 +6,9 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class LangConfig(
     // Announcements
-    val announceStart: String = "Server started",
+    val announceStartTitle: String = "Server started",
     val announceStartDescription: String = "{server} is now online — connect using `{ip}`",
-    val announceStop: String = "Server stopped",
+    val announceStopTitle: String = "Server stopped",
     val announceStopDescription: String = "{server} is now offline — see you soon!",
     val announceJoin: String = "{player} joined the game",
     val announceLeave: String = "{player} left the game",
@@ -49,8 +49,8 @@ data class LangConfig(
     // Logging
     val logBotTokenMissing: String = "Bot token missing! Add it to config/${MOD_ID}/config.json",
     val logChannelIdMissing: String = "Channel ID missing! Add it to config/${MOD_ID}/config.json",
-    val logLoginSuccess: String = "Discord login successful!",
-    val logLoginFail: String = "Discord login failed! Your bot token may be invalid",
+    val logLoginSuccess: String = "Login successful!",
+    val logLoginFail: String = "Login failed! Your bot token may be invalid",
     val logAnnounceFail: String = "Announcement failed! Your channel ID may be invalid",
     val logStatusFail: String = "Status command failed to initialize! Your channel ID may be invalid",
     val logWhitelistFail: String = "Whitelist command failed to initialize! Your channel id may be invalid"

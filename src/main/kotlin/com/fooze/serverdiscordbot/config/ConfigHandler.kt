@@ -7,22 +7,24 @@ import java.io.File
 object ConfigHandler {
     var config: ModConfig = ModConfig()
     var lang: LangConfig = LangConfig()
+    private val configFile = File("config/${MOD_ID}/config.json")
+    private val langFile = File("config/${MOD_ID}/lang.json")
 
+    // JSON serializer
     private val json = Json {
         encodeDefaults = true
         prettyPrint = true
         ignoreUnknownKeys = true
     }
 
-    private val configFile = File("config/${MOD_ID}/config.json")
-    private val langFile = File("config/${MOD_ID}/lang.json")
-
+    // Loads the config from disk
     fun load() {
         config = loadMerged(configFile, ModConfig())
         lang = loadMerged(langFile, LangConfig())
         save()
     }
 
+    // Saves the config to disk
     private fun save() {
         configFile.parentFile.mkdirs()
         configFile.writeText(json.encodeToString(config))

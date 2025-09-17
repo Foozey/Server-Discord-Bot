@@ -1,7 +1,7 @@
 package com.fooze.serverdiscordbot.util
 
 object Placeholder {
-    // Replaces placeholders in a string template with values from a map
+    // Replaces placeholders using values from a map
     fun replace(template: String, values: Map<String, String>): String {
         var result = template
 

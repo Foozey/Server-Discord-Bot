@@ -2,7 +2,6 @@ package com.fooze.serverdiscordbot
 
 import com.fooze.serverdiscordbot.config.ConfigHandler
 import com.fooze.serverdiscordbot.feature.Announcer
-import com.fooze.serverdiscordbot.feature.Announcer.announceServerEvent
 import com.fooze.serverdiscordbot.feature.StatusCommand
 import com.fooze.serverdiscordbot.feature.WhitelistCommand
 import com.fooze.serverdiscordbot.util.Colors
@@ -18,9 +17,9 @@ import org.slf4j.LoggerFactory
 object ServerDiscordBot : DedicatedServerModInitializer {
 	const val MOD_ID = "server-discord-bot"
 	private val logger = LoggerFactory.getLogger(MOD_ID)
-	lateinit var server: MinecraftServer
-	private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 	private lateinit var bot: Kord
+    private lateinit var server: MinecraftServer
 
 	override fun onInitializeServer() {
 		ConfigHandler.load()
@@ -31,40 +30,38 @@ object ServerDiscordBot : DedicatedServerModInitializer {
 		ServerLifecycleEvents.SERVER_STARTED.register { server ->
 			this.server = server
 
-			if (config.botToken.isBlank()) {
+			if (config.discordBotToken.isBlank()) {
 				logger.warn(lang.logBotTokenMissing)
 				return@register
 			}
 
-			if (config.channelId.isBlank()) {
+			if (config.discordChannelId.isBlank()) {
 				logger.warn(lang.logChannelIdMissing)
 				return@register
 			}
 
-            // Load the bot
 			scope.launch {
 				runCatching {
-					bot = Kord(config.botToken)
+					bot = Kord(config.discordBotToken)
 
-                    announceServerEvent(
+                    // Send server start announcement
+                    Announcer.announceServerEvent(
                         bot = bot,
                         config = config,
                         lang = lang,
                         logger = logger,
-                        title = lang.announceStart,
+                        title = lang.announceStartTitle,
                         description = lang.announceStartDescription,
                         color = Colors.GREEN
                     )
 
-					// Features
+					// Load features
 					Announcer.load(scope, bot, config, lang, logger)
-					StatusCommand.load(bot, config, lang, logger)
-					WhitelistCommand.load(bot, config, lang, logger)
+					StatusCommand.load(bot, config, lang, logger, server)
+					WhitelistCommand.load(bot, config, lang, logger, server)
 
-                    bot.on<ReadyEvent> {
-                        logger.info(lang.logLoginSuccess)
-                    }
-
+                    // Start the bot
+                    bot.on<ReadyEvent> { logger.info(lang.logLoginSuccess) }
                     bot.login()
 				}.onFailure {
                     logger.error(lang.logLoginFail, it)
@@ -75,17 +72,18 @@ object ServerDiscordBot : DedicatedServerModInitializer {
         // On server stop
 		ServerLifecycleEvents.SERVER_STOPPING.register {
 			runBlocking {
-                announceServerEvent(
+                // Send server stop announcement
+                Announcer.announceServerEvent(
                     bot = bot,
                     config = config,
                     lang = lang,
                     logger = logger,
-                    title = lang.announceStop,
+                    title = lang.announceStopTitle,
                     description = lang.announceStopDescription,
                     color = Colors.RED
                 )
 
-                // Shutdown the bot
+                // Stop the bot
                 bot.shutdown()
                 bot.resources.httpClient.close()
 			}

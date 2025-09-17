@@ -1,6 +1,5 @@
 package com.fooze.serverdiscordbot.feature
 
-import com.fooze.serverdiscordbot.ServerDiscordBot
 import com.fooze.serverdiscordbot.config.LangConfig
 import com.fooze.serverdiscordbot.config.ModConfig
 import com.fooze.serverdiscordbot.util.Colors
@@ -14,14 +13,15 @@ import dev.kord.core.event.interaction.GuildChatInputCommandInteractionCreateEve
 import dev.kord.core.on
 import dev.kord.rest.builder.interaction.string
 import dev.kord.rest.builder.message.embed
+import net.minecraft.server.MinecraftServer
 import net.minecraft.server.WhitelistEntry
 import org.slf4j.Logger
 
 object WhitelistCommand {
-    suspend fun load(bot: Kord, config: ModConfig, lang: LangConfig, logger: Logger) {
+    suspend fun load(bot: Kord, config: ModConfig, lang: LangConfig, logger: Logger, server: MinecraftServer) {
         // Create the command
         val whitelistCommand = runCatching {
-            val channel = bot.getChannelOf<TextChannel>(Snowflake(config.channelId)) ?: return
+            val channel = bot.getChannelOf<TextChannel>(Snowflake(config.discordChannelId)) ?: return
 
             bot.createGuildChatInputCommand(channel.guildId, lang.whitelistCommand, lang.whitelistCommandInfo) {
                 string(lang.whitelistCommandPlayer, lang.whitelistCommandPlayerInfo) {
@@ -35,7 +35,6 @@ object WhitelistCommand {
         // Create the interaction
         bot.on<GuildChatInputCommandInteractionCreateEvent> {
             if (interaction.command.rootName != whitelistCommand.name) return@on
-            val server = ServerDiscordBot.server
             val player = interaction.command.strings[lang.whitelistCommandPlayer]
             val profile = server.gameProfileRepo.findProfileByName(player).orElse(null)
 
@@ -46,7 +45,7 @@ object WhitelistCommand {
                 "player" to player.toString()
             )
 
-            // Embed formatting
+            // Build the embed
             interaction.deferPublicResponse().respond {
                 embed {
                     if (profile == null) {

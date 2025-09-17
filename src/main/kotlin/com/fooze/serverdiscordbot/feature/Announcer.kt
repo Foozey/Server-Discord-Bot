@@ -20,68 +20,6 @@ import net.minecraft.stat.Stats
 import org.slf4j.Logger
 
 object Announcer {
-    private suspend fun announce(
-        bot: Kord,
-        config: ModConfig,
-        lang: LangConfig,
-        logger: Logger,
-        embed: EmbedBuilder.() -> Unit
-    ) {
-        runCatching {
-            bot.getChannelOf<TextChannel>(Snowflake(config.channelId))?.createEmbed(embed)
-        }.onFailure {
-            logger.error(lang.logAnnounceFail, it)
-        }
-    }
-
-    suspend fun announceServerEvent(
-        bot: Kord,
-        config: ModConfig,
-        lang: LangConfig,
-        logger: Logger,
-        title: String,
-        description: String,
-        color: Color
-    ) {
-        announce(bot, config, lang, logger) {
-            // Placeholders
-            val values = mapOf(
-                "server" to Format.serverName(config, lang, true),
-                "ip" to config.serverIp
-            )
-
-            // Embed formatting
-            this.title = title
-            this.description = Placeholder.replace(description, values)
-            this.color = color
-        }
-    }
-
-    private fun announcePlayerEvent(
-        scope: CoroutineScope,
-        bot: Kord,
-        config: ModConfig,
-        lang: LangConfig,
-        logger: Logger,
-        player: String,
-        message: String,
-        description: String?,
-        color: Color
-    ) {
-        scope.launch {
-            announce(bot, config, lang, logger) {
-                // Embed formatting
-                author {
-                    this.name = message
-                    icon = "https://mc-heads.net/avatar/$player"
-                }
-
-                this.description = description
-                this.color = color
-            }
-        }
-    }
-
     fun load(scope: CoroutineScope, bot: Kord, config: ModConfig, lang: LangConfig, logger: Logger) {
         // On player join
         ServerPlayConnectionEvents.JOIN.register { handler, _, _ ->
@@ -91,7 +29,10 @@ object Announcer {
             val values = mapOf("player" to player)
             val message = Placeholder.replace(lang.announceJoin, values)
 
-            announcePlayerEvent(scope, bot, config, lang, logger, player, message, null, Colors.GREEN)
+            // Send the announcement
+            scope.launch {
+                announcePlayerEvent(bot, config, lang, logger, player, message, null, Colors.GREEN)
+            }
         }
 
         // On player leave
@@ -102,7 +43,10 @@ object Announcer {
             val values = mapOf("player" to player)
             val message = Placeholder.replace(lang.announceLeave, values)
 
-            announcePlayerEvent(scope, bot, config, lang, logger, player, message, null, Colors.RED)
+            // Send the announcement
+            scope.launch {
+                announcePlayerEvent(bot, config, lang, logger, player, message, null, Colors.RED)
+            }
         }
 
         // On player death
@@ -119,8 +63,73 @@ object Announcer {
                 val message = Placeholder.replace(lang.announceDeath, values)
                 val description = Placeholder.replace(lang.announceDeathTotal, values)
 
-                announcePlayerEvent(scope, bot, config, lang, logger, player, message, description, Colors.RED)
+                // Send the announcement
+                scope.launch {
+                    announcePlayerEvent(bot, config, lang, logger, player, message, description, Colors.RED)
+                }
             }
+        }
+    }
+
+    // Sends a server announcement to the configured channel
+    suspend fun announceServerEvent(
+        bot: Kord,
+        config: ModConfig,
+        lang: LangConfig,
+        logger: Logger,
+        title: String,
+        description: String,
+        color: Color
+    ) {
+        announce(bot, config, lang, logger) {
+            // Placeholders
+            val values = mapOf(
+                "server" to Format.serverName(config, lang, true),
+                "ip" to config.serverIp
+            )
+
+            // Build the embed
+            this.title = title
+            this.description = Placeholder.replace(description, values)
+            this.color = color
+        }
+    }
+
+    // Sends a player announcement to the configured channel
+    private suspend fun announcePlayerEvent(
+        bot: Kord,
+        config: ModConfig,
+        lang: LangConfig,
+        logger: Logger,
+        player: String,
+        message: String,
+        description: String?,
+        color: Color
+    ) {
+        announce(bot, config, lang, logger) {
+            // Build the embed
+            author {
+                this.name = message
+                icon = "https://mc-heads.net/avatar/$player"
+            }
+
+            this.description = description
+            this.color = color
+        }
+    }
+
+    // Creates an announcement and sends it to the configured channel
+    private suspend fun announce(
+        bot: Kord,
+        config: ModConfig,
+        lang: LangConfig,
+        logger: Logger,
+        embed: EmbedBuilder.() -> Unit
+    ) {
+        runCatching {
+            bot.getChannelOf<TextChannel>(Snowflake(config.discordChannelId))?.createEmbed(embed)
+        }.onFailure {
+            logger.error(lang.logAnnounceFail, it)
         }
     }
 }
