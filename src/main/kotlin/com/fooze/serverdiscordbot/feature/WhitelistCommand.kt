@@ -5,78 +5,70 @@ import com.fooze.serverdiscordbot.config.ModConfig
 import com.fooze.serverdiscordbot.util.Colors
 import com.fooze.serverdiscordbot.util.Format
 import com.fooze.serverdiscordbot.util.Placeholder
-import dev.kord.common.entity.Snowflake
-import dev.kord.core.Kord
 import dev.kord.core.behavior.interaction.response.respond
-import dev.kord.core.entity.application.GuildChatInputCommand
-import dev.kord.core.entity.channel.TextChannel
 import dev.kord.core.event.interaction.GuildChatInputCommandInteractionCreateEvent
-import dev.kord.core.on
+import dev.kord.rest.builder.interaction.ChatInputCreateBuilder
 import dev.kord.rest.builder.interaction.string
 import dev.kord.rest.builder.message.embed
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.WhitelistEntry
-import org.slf4j.Logger
 
-object WhitelistCommand {
-    var whitelistCommand: GuildChatInputCommand? = null
+object WhitelistCommand : Command( { it.whitelistCommand }, { it.whitelistCommandInfo }) {
+    override suspend fun run(
+        event: GuildChatInputCommandInteractionCreateEvent,
+        config: ModConfig,
+        lang: LangConfig,
+        server: MinecraftServer?
+    ) {
+        if (server == null) return
 
-    suspend fun load(bot: Kord?, config: ModConfig, lang: LangConfig, logger: Logger, server: MinecraftServer) {
-        // Create the command
-        whitelistCommand = runCatching {
-            val channel = bot?.getChannelOf<TextChannel>(Snowflake(config.discordChannelId)) ?: return
+        // Get the player's name and profile
+        val player = event.interaction.command.strings[lang.whitelistCommandPlayer]
+        val profile = server.gameProfileRepo.findProfileByName(player).orElse(null)
 
-            bot.createGuildChatInputCommand(channel.guildId, lang.whitelistCommand, lang.whitelistCommandInfo) {
-                string(lang.whitelistCommandPlayer, lang.whitelistCommandPlayerInfo) {
-                    required = true
-                }
-            }
-        }.onFailure {
-            logger.error(lang.logWhitelistFail, it)
-        }.getOrNull() ?: return
+        // Placeholders
+        val values = mapOf(
+            "server" to Format.serverName(config, lang, false),
+            "type" to Format.serverType(config, lang, server),
+            "player" to player.toString()
+        )
 
-        // Create the interaction
-        bot?.on<GuildChatInputCommandInteractionCreateEvent> {
-            if (interaction.command.rootName != whitelistCommand?.name) return@on
-            val player = interaction.command.strings[lang.whitelistCommandPlayer]
-            val profile = server.gameProfileRepo.findProfileByName(player).orElse(null)
+        // Build the embed
+        event.interaction.deferPublicResponse().respond {
+            embed {
+                if (profile == null) {
+                    description = Placeholder.replace(lang.whitelistInvalid, values)
+                    color = Colors.RED
+                } else if (server.playerManager.whitelist.isAllowed(profile)) {
+                    description = Placeholder.replace(lang.whitelistExisting, values)
+                    color = Colors.YELLOW
+                } else {
+                    server.playerManager.whitelist.add(WhitelistEntry(profile))
 
-            // Placeholders
-            val values = mapOf(
-                "server" to Format.serverName(config, lang, false),
-                "type" to Format.serverType(config, lang, server),
-                "player" to player.toString()
-            )
+                    title = Placeholder.replace(lang.whitelistAdd, values)
+                    color = Colors.GREEN
+                    thumbnail { url = "https://mc-heads.net/avatar/$player" }
 
-            // Build the embed
-            interaction.deferPublicResponse().respond {
-                embed {
-                    if (profile == null) {
-                        description = Placeholder.replace(lang.whitelistInvalid, values)
-                        color = Colors.RED
-                    } else if (server.playerManager.whitelist.isAllowed(profile)) {
-                        description = Placeholder.replace(lang.whitelistExisting, values)
-                        color = Colors.YELLOW
-                    } else {
-                        server.playerManager.whitelist.add(WhitelistEntry(profile))
-                        title = Placeholder.replace(lang.whitelistAdd, values)
-                        color = Colors.GREEN
-                        thumbnail { url = "https://mc-heads.net/avatar/$player" }
+                    field(Placeholder.replace(lang.whitelistAddTitle, values)) {
+                        Placeholder.replace(lang.whitelistAddDescription, values)
+                    }
 
-                        field(Placeholder.replace(lang.whitelistAddTitle, values)) {
-                            Placeholder.replace(lang.whitelistAddDescription, values)
-                        }
-
-                        field("") {
-                            if (config.serverIp.isNotEmpty()) {
-                                "```${config.serverIp}```"
-                            } else {
-                                "```${lang.whitelistIpMissing}```"
-                            }
+                    field("") {
+                        if (config.serverIp.isNotEmpty()) {
+                            "```${config.serverIp}```"
+                        } else {
+                            "```${lang.whitelistIpMissing}```"
                         }
                     }
                 }
             }
+        }
+    }
+
+    // Defines the player as a required command option
+    override suspend fun options(builder: ChatInputCreateBuilder, lang: LangConfig) {
+        builder.string(lang.whitelistCommandPlayer, lang.whitelistCommandPlayerInfo) {
+            required = true
         }
     }
 }

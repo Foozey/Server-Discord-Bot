@@ -63,6 +63,5 @@ data class LangConfig(
     val logLoginSuccess: String = "Login successful!",
     val logLoginFail: String = "Login failed! Your bot token may be invalid",
     val logAnnounceFail: String = "Announcement failed! Your channel ID may be invalid",
-    val logStatusFail: String = "Status command failed to initialize! Your channel ID may be invalid",
-    val logWhitelistFail: String = "Whitelist command failed to initialize! Your channel id may be invalid"
+    val logCommandFail: String = "{command} command failed to initialize! Your channel ID may be invalid"
 )

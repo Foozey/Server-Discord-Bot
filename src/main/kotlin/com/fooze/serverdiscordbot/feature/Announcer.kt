@@ -53,13 +53,10 @@ object Announcer {
         ServerLivingEntityEvents.AFTER_DEATH.register { entity, _ ->
             if (entity is ServerPlayerEntity) {
                 val player = entity.name.string
+                val deaths = entity.statHandler.getStat(Stats.CUSTOM.getOrCreateStat(Stats.DEATHS))
 
                 // Placeholders
-                val values = mapOf(
-                    "player" to player,
-                    "deaths" to entity.statHandler.getStat(Stats.CUSTOM.getOrCreateStat(Stats.DEATHS)).toString()
-                )
-
+                val values = mapOf("player" to player, "deaths" to deaths.toString())
                 val message = Placeholder.replace(lang.announceDeath, values)
                 val description = Placeholder.replace(lang.announceDeathTotal, values)
 
