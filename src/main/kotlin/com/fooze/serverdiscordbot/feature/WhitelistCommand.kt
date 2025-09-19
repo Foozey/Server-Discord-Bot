@@ -13,7 +13,7 @@ import dev.kord.rest.builder.message.embed
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.WhitelistEntry
 
-object WhitelistCommand : Command( { it.whitelistCommand }, { it.whitelistCommandInfo }) {
+object WhitelistCommand : Command({ it.whitelistCommand }, { it.whitelistCommandInfo }) {
     override suspend fun run(
         event: GuildChatInputCommandInteractionCreateEvent,
         config: ModConfig,
@@ -23,14 +23,14 @@ object WhitelistCommand : Command( { it.whitelistCommand }, { it.whitelistComman
         if (server == null) return
 
         // Get the player's name and profile
-        val player = event.interaction.command.strings[lang.whitelistCommandPlayer]
-        val profile = server.gameProfileRepo.findProfileByName(player).orElse(null)
+        val name = event.interaction.command.strings[lang.whitelistCommandPlayer]
+        val profile = server.gameProfileRepo.findProfileByName(name).orElse(null)
 
         // Placeholders
         val values = mapOf(
             "server" to Format.serverName(config, lang, false),
             "type" to Format.serverType(config, lang, server),
-            "player" to player.toString()
+            "player" to name.toString()
         )
 
         // Build the embed
@@ -43,15 +43,14 @@ object WhitelistCommand : Command( { it.whitelistCommand }, { it.whitelistComman
                     description = Placeholder.replace(lang.whitelistExisting, values)
                     color = Colors.YELLOW
                 } else {
+                    // Add the player to the whitelist
                     server.playerManager.whitelist.add(WhitelistEntry(profile))
 
-                    title = Placeholder.replace(lang.whitelistAdd, values)
+                    title = Placeholder.replace(lang.whitelistAddTitle, values)
+                    description = Placeholder.replace(lang.whitelistAddDescription, values)
                     color = Colors.GREEN
-                    thumbnail { url = "https://mc-heads.net/avatar/$player" }
-
-                    field(Placeholder.replace(lang.whitelistAddTitle, values)) {
-                        Placeholder.replace(lang.whitelistAddDescription, values)
-                    }
+                    thumbnail { url = "https://mc-heads.net/avatar/${name}" }
+                    field("") { Placeholder.replace(lang.whitelistAddDescriptionInfo, values) }
 
                     field("") {
                         if (config.serverIp.isNotEmpty()) {

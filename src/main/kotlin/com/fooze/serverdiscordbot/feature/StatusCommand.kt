@@ -12,7 +12,7 @@ import net.minecraft.server.MinecraftServer
 import java.lang.management.ManagementFactory
 import java.time.Instant
 
-object StatusCommand : Command( { it.statusCommand }, { it.statusCommandInfo }) {
+object StatusCommand : Command({ it.statusCommand }, { it.statusCommandInfo }) {
     override suspend fun run(
         event: GuildChatInputCommandInteractionCreateEvent,
         config: ModConfig,
@@ -35,6 +35,7 @@ object StatusCommand : Command( { it.statusCommand }, { it.statusCommandInfo }) 
             embed {
                 title = lang.statusTitle
                 description = Placeholder.replace(lang.statusDescription, values)
+                field("")
                 field(lang.statusState, true) { "```\uD83D\uDFE2 ${lang.statusStateValue}```" }
                 field(lang.statusTps, true) { "```${getTicks(server, true)}```" }
                 field(lang.statusMspt, true) { "```${getTicks(server, false)}```" }

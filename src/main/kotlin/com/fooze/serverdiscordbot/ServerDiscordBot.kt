@@ -1,10 +1,7 @@
 package com.fooze.serverdiscordbot
 
 import com.fooze.serverdiscordbot.config.ConfigHandler
-import com.fooze.serverdiscordbot.feature.Announcer
-import com.fooze.serverdiscordbot.feature.HelpCommand
-import com.fooze.serverdiscordbot.feature.StatusCommand
-import com.fooze.serverdiscordbot.feature.WhitelistCommand
+import com.fooze.serverdiscordbot.feature.*
 import com.fooze.serverdiscordbot.util.Colors
 import dev.kord.core.Kord
 import dev.kord.core.event.gateway.ReadyEvent
@@ -60,6 +57,7 @@ object ServerDiscordBot : DedicatedServerModInitializer {
 					Announcer.load(scope, bot, config, lang, logger)
 					StatusCommand.load(bot, config, lang, logger, server)
 					WhitelistCommand.load(bot, config, lang, logger, server)
+                    StatsCommand.load(bot, config, lang, logger, server)
                     HelpCommand.load(bot, config, lang, logger)
 
                     // Start the bot
