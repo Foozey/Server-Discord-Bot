@@ -67,6 +67,8 @@
 
     "logBotTokenMissing": "Bot token missing! Add it to config/server-discord-bot/config.json",
     "logChannelIdMissing": "Channel ID missing! Add it to config/server-discord-bot/config.json",
+    "logLangMissing": "Unable to find language file for: {language}",
+    "logLangMissingFallback": "Falling back to default language (en_us)",
     "logLoginSuccess": "Login successful!",
     "logLoginFail": "Login failed! Your bot token may be invalid",
     "logAnnounceFail": "Announcement failed! Your channel ID may be invalid",

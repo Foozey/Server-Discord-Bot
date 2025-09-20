@@ -1,7 +1,9 @@
 package com.fooze.serverdiscordbot.config
 
 import com.fooze.serverdiscordbot.ServerDiscordBot.MOD_ID
+import com.fooze.serverdiscordbot.util.Placeholder
 import kotlinx.serialization.json.*
+import org.slf4j.Logger
 import java.io.File
 
 object ConfigHandler {
@@ -17,10 +19,10 @@ object ConfigHandler {
     }
 
     // Loads the config and language files
-    fun load() {
-        val configText = if (configFile.exists()) configFile.readText() else null
-        config = loadMerged(configText, ModConfig())
-        lang = loadLang()
+    fun load(logger: Logger) {
+        val loadedConfig = if (configFile.exists()) configFile.readText() else null
+        config = loadMerged(loadedConfig, ModConfig())
+        lang = loadLang(logger)
         save()
     }
 
@@ -31,17 +33,28 @@ object ConfigHandler {
     }
 
     // Merges the loaded JSON with the default values
-    private inline fun <reified T> loadMerged(jsonText: String?, defaultConfig: T): T {
-        if (jsonText == null) return defaultConfig
-        val loaded = json.parseToJsonElement(jsonText).jsonObject
-        val defaults = json.encodeToJsonElement(defaultConfig).jsonObject
-        return json.decodeFromJsonElement(JsonObject(defaults + loaded))
+    private inline fun <reified T> loadMerged(loadedConfig: String?, defaultConfig: T): T {
+        if (loadedConfig == null) return defaultConfig
+        val loaded = json.parseToJsonElement(loadedConfig).jsonObject
+        val default = json.encodeToJsonElement(defaultConfig).jsonObject
+        return json.decodeFromJsonElement(JsonObject(default + loaded))
     }
 
     // Loads the language file from the mod resources
-    private fun loadLang(): LangConfig {
+    private fun loadLang(logger: Logger): LangConfig {
         val path = "/assets/$MOD_ID/lang/${config.language}.json"
-        val stream = javaClass.getResourceAsStream(path) ?: return LangConfig()
+        val stream = javaClass.getResourceAsStream(path)
+
+        // Placeholders
+        val values = mapOf("language" to config.language)
+
+        // Fallback to defaults if the language file is missing
+        if (stream == null) {
+            logger.warn(Placeholder.replace(lang.logLangMissing, values))
+            logger.warn(lang.logLangMissingFallback)
+            return LangConfig()
+        }
+
         return loadMerged(stream.reader().readText(), LangConfig())
     }
 }

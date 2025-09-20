@@ -20,7 +20,7 @@ object ServerDiscordBot : DedicatedServerModInitializer {
     private var server: MinecraftServer? = null
 
 	override fun onInitializeServer() {
-		ConfigHandler.load()
+		ConfigHandler.load(logger)
 		val config = ConfigHandler.config
         val lang = ConfigHandler.lang
 
