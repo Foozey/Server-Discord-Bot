@@ -42,7 +42,7 @@ object ServerDiscordBot : DedicatedServerModInitializer {
 				runCatching {
 					bot = Kord(config.discordBotToken)
 
-                    // Send server start announcement
+                    // Send start announcement
                     Announcer.announceServerEvent(
                         bot = bot,
                         config = config,
@@ -72,7 +72,7 @@ object ServerDiscordBot : DedicatedServerModInitializer {
         // On server stop
 		ServerLifecycleEvents.SERVER_STOPPING.register {
 			runBlocking {
-                // Send server stop announcement
+                // Send stop announcement
                 Announcer.announceServerEvent(
                     bot = bot,
                     config = config,

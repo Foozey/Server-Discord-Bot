@@ -26,7 +26,7 @@ object HelpCommand : Command({ it.helpCommand }, { it.helpCommandInfo }) {
             "whitelist" to lang.whitelistCommand,
             "whitelistId" to WhitelistCommand.command?.id.toString(),
             "stats" to lang.statsCommand,
-            "statsId" to StatsCommand.command?.id.toString(),
+            "statsId" to StatsCommand.command?.id.toString()
         )
 
         // Build the embed
@@ -34,6 +34,8 @@ object HelpCommand : Command({ it.helpCommand }, { it.helpCommandInfo }) {
             embed {
                 title = lang.helpTitle
                 description = Placeholder.replace(lang.helpDescription, values)
+
+                // Commands
                 field("")
                 field("") { Placeholder.replace(lang.helpHelp, values) }
                 field("") { Placeholder.replace(lang.helpStatus, values) }

@@ -54,6 +54,6 @@ abstract class Command(
         event: GuildChatInputCommandInteractionCreateEvent,
         config: ModConfig,
         lang: LangConfig,
-        server: MinecraftServer? = null
+        server: MinecraftServer?
     )
 }

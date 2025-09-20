@@ -15,6 +15,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents
+import net.minecraft.server.MinecraftServer
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.stat.Stats
 import org.slf4j.Logger
@@ -29,9 +30,10 @@ object Announcer {
             val values = mapOf("player" to player)
             val message = Placeholder.replace(lang.announceJoin, values)
 
-            // Send the announcement
+            // Send join announcement and update presence
             scope.launch {
                 announcePlayerEvent(bot, config, lang, logger, player, message, null, Colors.GREEN)
+                updatePresence(bot, lang, handler.player.server)
             }
         }
 
@@ -43,9 +45,10 @@ object Announcer {
             val values = mapOf("player" to player)
             val message = Placeholder.replace(lang.announceLeave, values)
 
-            // Send the announcement
+            // Send leave announcement and update presence
             scope.launch {
                 announcePlayerEvent(bot, config, lang, logger, player, message, null, Colors.RED)
+                updatePresence(bot, lang, handler.player.server)
             }
         }
 
@@ -60,7 +63,7 @@ object Announcer {
                 val message = Placeholder.replace(lang.announceDeath, values)
                 val description = Placeholder.replace(lang.announceDeathTotal, values)
 
-                // Send the announcement
+                // Send death announcement
                 scope.launch {
                     announcePlayerEvent(bot, config, lang, logger, player, message, description, Colors.RED)
                 }
@@ -68,7 +71,22 @@ object Announcer {
         }
     }
 
-    // Sends a server announcement to the configured channel
+    // Creates an announcement and sends it to the configured channel
+    private suspend fun announce(
+        bot: Kord?,
+        config: ModConfig,
+        lang: LangConfig,
+        logger: Logger,
+        embed: EmbedBuilder.() -> Unit
+    ) {
+        runCatching {
+            bot?.getChannelOf<TextChannel>(Snowflake(config.discordChannelId))?.createEmbed(embed)
+        }.onFailure {
+            logger.error(lang.logAnnounceFail, it)
+        }
+    }
+
+    // Creates a server announcement
     suspend fun announceServerEvent(
         bot: Kord?,
         config: ModConfig,
@@ -92,7 +110,7 @@ object Announcer {
         }
     }
 
-    // Sends a player announcement to the configured channel
+    // Creates a player announcement
     private suspend fun announcePlayerEvent(
         bot: Kord?,
         config: ModConfig,
@@ -105,28 +123,26 @@ object Announcer {
     ) {
         announce(bot, config, lang, logger) {
             // Build the embed
+            this.description = description
+            this.color = color
+
             author {
                 this.name = message
                 icon = "https://mc-heads.net/avatar/$player"
             }
-
-            this.description = description
-            this.color = color
         }
     }
 
-    // Creates an announcement and sends it to the configured channel
-    private suspend fun announce(
-        bot: Kord?,
-        config: ModConfig,
-        lang: LangConfig,
-        logger: Logger,
-        embed: EmbedBuilder.() -> Unit
-    ) {
-        runCatching {
-            bot?.getChannelOf<TextChannel>(Snowflake(config.discordChannelId))?.createEmbed(embed)
-        }.onFailure {
-            logger.error(lang.logAnnounceFail, it)
+    // Updates the presence to show the current player count
+    private suspend fun updatePresence(bot: Kord?, lang: LangConfig, server: MinecraftServer?) {
+        val playerCount = server?.playerManager?.currentPlayerCount ?: 0
+        val template = if (playerCount == 1) lang.announcePresence else lang.announcePresencePlural
+        val values = mapOf("count" to playerCount.toString())
+
+        if (playerCount > 0) {
+            bot?.editPresence { watching(Placeholder.replace(template, values)) }
+        } else {
+            bot?.editPresence { toPresence() }
         }
     }
 }

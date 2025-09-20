@@ -35,6 +35,8 @@ object StatusCommand : Command({ it.statusCommand }, { it.statusCommandInfo }) {
             embed {
                 title = lang.statusTitle
                 description = Placeholder.replace(lang.statusDescription, values)
+
+                // System info
                 field("")
                 field(lang.statusState, true) { "```\uD83D\uDFE2 ${lang.statusStateValue}```" }
                 field(lang.statusTps, true) { "```${getTicks(server, true)}```" }
@@ -42,8 +44,12 @@ object StatusCommand : Command({ it.statusCommand }, { it.statusCommandInfo }) {
                 field(lang.statusCpu, true) { "```${getCpuUsage()}```" }
                 field(lang.statusRam, true) { "```${getRamUsage()}```" }
                 field("")
+
+                // Player list
                 field(Placeholder.replace(lang.statusPlayers, values)) { getPlayerList(lang, server) }
                 field("")
+
+                // Last updated footer
                 field("") { "-# ${Placeholder.replace(lang.statusUpdate, values)}" }
             }
         }

@@ -7,6 +7,8 @@
     "announceLeave": "{player} left the game",
     "announceDeath": "{player} died",
     "announceDeathTotal": "Total deaths: {deaths}",
+    "announcePresence": "{count} player online",
+    "announcePresencePlural": "{count} players online",
 
     "statusCommand": "status",
     "statusCommandInfo": "Displays the server status",
@@ -72,5 +74,5 @@
     "logLoginSuccess": "Login successful!",
     "logLoginFail": "Login failed! Your bot token may be invalid",
     "logAnnounceFail": "Announcement failed! Your channel ID may be invalid",
-    "logCommandFail": "{command} command failed to initialize! Your channel ID may be invalid"
+    "logCommandFail": "/{command} command failed to initialize! Your channel ID may be invalid"
 }

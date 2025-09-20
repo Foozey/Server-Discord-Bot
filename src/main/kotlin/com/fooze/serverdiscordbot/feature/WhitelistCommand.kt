@@ -22,7 +22,6 @@ object WhitelistCommand : Command({ it.whitelistCommand }, { it.whitelistCommand
     ) {
         if (server == null) return
 
-        // Get the player's name and profile
         val name = event.interaction.command.strings[lang.whitelistCommandPlayer]
         val profile = server.gameProfileRepo.findProfileByName(name).orElse(null)
 
@@ -50,10 +49,13 @@ object WhitelistCommand : Command({ it.whitelistCommand }, { it.whitelistCommand
                     description = Placeholder.replace(lang.whitelistAddDescription, values)
                     color = Colors.GREEN
                     thumbnail { url = "https://mc-heads.net/avatar/${name}" }
+
+                    // Joining info
                     field("") { Placeholder.replace(lang.whitelistAddDescriptionInfo, values) }
 
+                    // Server IP
                     field("") {
-                        if (config.serverIp.isNotEmpty()) {
+                        if (config.serverIp.isNotBlank()) {
                             "```${config.serverIp}```"
                         } else {
                             "```${lang.whitelistIpMissing}```"

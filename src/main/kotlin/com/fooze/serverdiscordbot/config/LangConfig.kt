@@ -14,6 +14,8 @@ data class LangConfig(
     val announceLeave: String = "{player} left the game",
     val announceDeath: String = "{player} died",
     val announceDeathTotal: String = "Total deaths: {deaths}",
+    val announcePresence: String = "{count} player online",
+    val announcePresencePlural: String = "{count} players online",
 
     // Status Command
     val statusCommand: String = "status",

@@ -23,11 +23,6 @@ object ConfigHandler {
         val loadedConfig = if (configFile.exists()) configFile.readText() else null
         config = loadMerged(loadedConfig, ModConfig())
         lang = loadLang(logger)
-        save()
-    }
-
-    // Saves the config file
-    private fun save() {
         configFile.parentFile.mkdirs()
         configFile.writeText(json.encodeToString(config))
     }
