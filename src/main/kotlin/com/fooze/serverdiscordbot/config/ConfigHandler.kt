@@ -7,8 +7,7 @@ import java.io.File
 object ConfigHandler {
     var config: ModConfig = ModConfig()
     var lang: LangConfig = LangConfig()
-    private val configFile = File("config/${MOD_ID}/config.json")
-    private val langFile = File("config/${MOD_ID}/lang.json")
+    private val configFile = File("config/$MOD_ID.json")
 
     // JSON serializer
     private val json = Json {
@@ -17,29 +16,32 @@ object ConfigHandler {
         ignoreUnknownKeys = true
     }
 
-    // Loads the config from disk
+    // Loads the config and language files
     fun load() {
-        config = loadMerged(configFile, ModConfig())
-        lang = loadMerged(langFile, LangConfig())
+        val configText = if (configFile.exists()) configFile.readText() else null
+        config = loadMerged(configText, ModConfig())
+        lang = loadLang()
         save()
     }
 
-    // Saves the config to disk
+    // Saves the config file
     private fun save() {
         configFile.parentFile.mkdirs()
         configFile.writeText(json.encodeToString(config))
-        langFile.writeText(json.encodeToString(lang))
     }
 
-    // Helper to merge loaded config with defaults
-    private inline fun <reified T> loadMerged(file: File, default: T): T {
-        return if (file.exists()) {
-            val loaded = json.parseToJsonElement(file.readText()).jsonObject
-            val defaults = json.encodeToJsonElement(default).jsonObject
-            val merged = JsonObject(defaults + loaded)
-            json.decodeFromJsonElement<T>(merged)
-        } else {
-            default
-        }
+    // Merges the loaded JSON with the default values
+    private inline fun <reified T> loadMerged(jsonText: String?, defaultConfig: T): T {
+        if (jsonText == null) return defaultConfig
+        val loaded = json.parseToJsonElement(jsonText).jsonObject
+        val defaults = json.encodeToJsonElement(defaultConfig).jsonObject
+        return json.decodeFromJsonElement(JsonObject(defaults + loaded))
+    }
+
+    // Loads the language file from the mod resources
+    private fun loadLang(): LangConfig {
+        val path = "/assets/$MOD_ID/lang/${config.language}.json"
+        val stream = javaClass.getResourceAsStream(path) ?: return LangConfig()
+        return loadMerged(stream.reader().readText(), LangConfig())
     }
 }

@@ -78,8 +78,8 @@ data class LangConfig(
     val defaultServerType: String = "Minecraft {version}",
 
     // Logging
-    val logBotTokenMissing: String = "Bot token missing! Add it to config/${MOD_ID}/config.json",
-    val logChannelIdMissing: String = "Channel ID missing! Add it to config/${MOD_ID}/config.json",
+    val logBotTokenMissing: String = "Bot token missing! Add it to config/${MOD_ID}.json",
+    val logChannelIdMissing: String = "Channel ID missing! Add it to config/${MOD_ID}.json",
     val logLoginSuccess: String = "Login successful!",
     val logLoginFail: String = "Login failed! Your bot token may be invalid",
     val logAnnounceFail: String = "Announcement failed! Your channel ID may be invalid",

@@ -4,6 +4,9 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class ModConfig(
+    // Language
+    val language: String = "en_us",
+
     // Discord
     val discordBotToken: String = "",
     val discordChannelId: String = "",
