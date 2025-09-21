@@ -64,6 +64,14 @@
     "helpStats": "</{stats}:{statsId}> — Displays a player's statistics",
     "helpStatsUsage": "Usage: /{stats} <player>",
 
+    "milestoneDeaths": "{player} has died {count} times!",
+    "milestonePlayerKills": "{player} has killed {count} players!",
+    "milestoneMobKills": "{player} has killed {count} mobs!",
+    "milestoneBlocksMined": "{player} has mined {count} blocks!",
+    "milestoneBlocksPlaced": "{player} has placed {count} blocks!",
+    "milestoneItemsCrafted": "{player} has crafted {count} items!",
+    "milestoneTimePlayed": "{player} has played for {count} hours!",
+
     "defaultServerName": "The server",
     "defaultServerType": "Minecraft {version}",
 

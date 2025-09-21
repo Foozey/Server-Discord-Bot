@@ -63,7 +63,7 @@ object Announcer {
                 val message = Placeholder.replace(lang.announceDeath, values)
                 val description = Placeholder.replace(lang.announceDeathTotal, values)
 
-                // Send death announcement and deaths milestone
+                // Send death announcement
                 scope.launch {
                     announcePlayerEvent(bot, config, lang, logger, description, Colors.RED, message, name)
                 }
