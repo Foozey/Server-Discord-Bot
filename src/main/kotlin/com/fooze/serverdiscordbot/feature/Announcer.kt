@@ -32,7 +32,7 @@ object Announcer {
 
             // Send join announcement and update presence
             scope.launch {
-                announcePlayerEvent(bot, config, lang, logger, player, message, null, Colors.GREEN)
+                announcePlayerEvent(bot, config, lang, logger, null, Colors.GREEN, message, player)
                 updatePresence(bot, lang, handler.player.server)
             }
         }
@@ -47,7 +47,7 @@ object Announcer {
 
             // Send leave announcement and update presence
             scope.launch {
-                announcePlayerEvent(bot, config, lang, logger, player, message, null, Colors.RED)
+                announcePlayerEvent(bot, config, lang, logger, null, Colors.RED, message, player)
                 updatePresence(bot, lang, handler.player.server)
             }
         }
@@ -55,17 +55,17 @@ object Announcer {
         // On player death
         ServerLivingEntityEvents.AFTER_DEATH.register { entity, _ ->
             if (entity is ServerPlayerEntity) {
-                val player = entity.name.string
+                val name = entity.name.string
                 val deaths = entity.statHandler.getStat(Stats.CUSTOM.getOrCreateStat(Stats.DEATHS))
 
                 // Placeholders
-                val values = mapOf("player" to player, "deaths" to deaths.toString())
+                val values = mapOf("player" to name, "deaths" to deaths.toString())
                 val message = Placeholder.replace(lang.announceDeath, values)
                 val description = Placeholder.replace(lang.announceDeathTotal, values)
 
-                // Send death announcement
+                // Send death announcement and deaths milestone
                 scope.launch {
-                    announcePlayerEvent(bot, config, lang, logger, player, message, description, Colors.RED)
+                    announcePlayerEvent(bot, config, lang, logger, description, Colors.RED, message, name)
                 }
             }
         }
@@ -86,7 +86,7 @@ object Announcer {
         }
     }
 
-    // Creates a server announcement
+    // Announces a server event
     suspend fun announceServerEvent(
         bot: Kord?,
         config: ModConfig,
@@ -110,16 +110,16 @@ object Announcer {
         }
     }
 
-    // Creates a player announcement
-    private suspend fun announcePlayerEvent(
+    // Announces a player event
+    suspend fun announcePlayerEvent(
         bot: Kord?,
         config: ModConfig,
         lang: LangConfig,
         logger: Logger,
-        player: String,
-        message: String,
         description: String?,
-        color: Color
+        color: Color,
+        message: String,
+        player: String
     ) {
         announce(bot, config, lang, logger) {
             // Build the embed

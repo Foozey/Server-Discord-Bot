@@ -59,6 +59,7 @@ object ServerDiscordBot : DedicatedServerModInitializer {
 					WhitelistCommand.load(bot, config, lang, logger, server)
                     StatsCommand.load(bot, config, lang, logger, server)
                     HelpCommand.load(bot, config, lang, logger)
+                    Milestones.load(scope, bot, config, lang, logger)
 
                     // Start the bot
                     bot?.on<ReadyEvent> { logger.info(lang.logLoginSuccess) }

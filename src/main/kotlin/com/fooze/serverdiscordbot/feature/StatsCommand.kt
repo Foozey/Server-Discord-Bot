@@ -10,9 +10,11 @@ import dev.kord.core.event.interaction.GuildChatInputCommandInteractionCreateEve
 import dev.kord.rest.builder.interaction.ChatInputCreateBuilder
 import dev.kord.rest.builder.interaction.string
 import dev.kord.rest.builder.message.embed
+import net.minecraft.registry.DefaultedRegistry
 import net.minecraft.registry.Registries
 import net.minecraft.server.MinecraftServer
 import net.minecraft.stat.ServerStatHandler
+import net.minecraft.stat.StatType
 import net.minecraft.stat.Stats
 import net.minecraft.util.Identifier
 import java.time.Instant
@@ -53,17 +55,16 @@ object StatsCommand : Command ({ it.statsCommand }, { it.statsCommandInfo }) {
                     title = Placeholder.replace(lang.statsTitle, values)
                     description = Placeholder.replace(lang.statsDescription, values)
                     thumbnail { url = "https://mc-heads.net/player/${name}" }
-                    author { this.name = "\uD83C\uDF10 ${lang.statsGeneral}" }
 
-                    // Player stats
+                    // Stat fields
                     field("")
                     field(lang.statsDeaths, true) { "```${getStat(stats, Stats.DEATHS)}```" }
                     field(lang.statsPlayerKills, true) { "```${getStat(stats, Stats.PLAYER_KILLS)}```" }
                     field(lang.statsMobKills, true) { "```${getStat(stats, Stats.MOB_KILLS)}```" }
-                    field(lang.statsBlocksMined, true) { "```${getBlocksMined(stats)}```" }
-                    field(lang.statsBlocksPlaced, true) { "```${getBlocksPlaced(stats)}```" }
-                    field(lang.statsItemsCrafted, true) { "```${getItemsCrafted(stats)}```" }
-                    field(lang.statsTimePlayed, true) { "```${formatTime(getStat(stats, Stats.PLAY_TIME))}```" }
+                    field(lang.statsBlocksMined, true) { "```${getTotal(stats, Registries.BLOCK, Stats.MINED) { it }}```" }
+                    field(lang.statsBlocksPlaced, true) { "```${getTotal(stats, Registries.BLOCK, Stats.USED) { it.asItem() }}```" }
+                    field(lang.statsItemsCrafted, true) { "```${getTotal(stats, Registries.ITEM, Stats.CRAFTED) { it }}```" }
+                    field(lang.statsTimePlayed, true) { "```${formatHours(getStat(stats, Stats.PLAY_TIME))}```" }
                     field("")
 
                     // Last updated footer
@@ -80,36 +81,26 @@ object StatsCommand : Command ({ it.statsCommand }, { it.statsCommandInfo }) {
         }
     }
 
-    // Returns the value of the provided stat for the player
-    private fun getStat(stats: ServerStatHandler, stat: Identifier): Int {
+    // Returns the value of the provided stat
+    fun getStat(stats: ServerStatHandler, stat: Identifier): Int {
         return stats.getStat(Stats.CUSTOM.getOrCreateStat(stat))
     }
 
-    // Returns the total blocks mined by the player
-    private fun getBlocksMined(stats: ServerStatHandler,): Int {
-        return Registries.BLOCK.sumOf { stats.getStat(Stats.MINED.getOrCreateStat(it)) }
-    }
-
-    // Returns the total blocks placed by the player
-    private fun getBlocksPlaced(stats: ServerStatHandler,): Int {
-        return Registries.BLOCK.sumOf { block ->
-            block.asItem()?.let { stats.getStat(Stats.USED.getOrCreateStat(it)) } ?: 0
+    // Returns the total of the provided stats
+    fun <T, R> getTotal(
+        stats: ServerStatHandler,
+        registry: DefaultedRegistry<T>,
+        type: StatType<R>,
+        map: (T) -> R
+    ): Int {
+        return registry.sumOf { entry ->
+            map(entry)?.let { stats.getStat(type.getOrCreateStat(it)) } ?: 0
         }
-    }
-
-    // Returns the total items crafted by the player
-    private fun getItemsCrafted(stats: ServerStatHandler): Int {
-        return Registries.ITEM.sumOf { stats.getStat(Stats.CRAFTED.getOrCreateStat(it)) }
     }
 
     // Returns the time in hours for the provided ticks
-    private fun formatTime(ticks: Int): String {
+    private fun formatHours(ticks: Int): String {
         val hours = ticks.toDouble() / 72000
-
-        return if (hours % 1.0 == 0.0) {
-            String.format("%d hours", hours.toInt())
-        } else {
-            String.format("%.1f hours", hours)
-        }
+        return String.format("%.1f", hours).removeSuffix(".0") + " hours"
     }
 }

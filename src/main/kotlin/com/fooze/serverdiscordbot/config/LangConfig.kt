@@ -75,6 +75,15 @@ data class LangConfig(
     val helpStats: String = "</{stats}:{statsId}> — Displays a player's statistics",
     val helpStatsUsage: String = "Usage: /{stats} <player>",
 
+    // Milestones
+    val milestoneDeaths: String = "{player} has died {count} times!",
+    val milestonePlayerKills: String = "{player} has killed {count} players!",
+    val milestoneMobKills: String = "{player} has killed {count} mobs!",
+    val milestoneBlocksMined: String = "{player} has mined {count} blocks!",
+    val milestoneBlocksPlaced: String = "{player} has placed {count} blocks!",
+    val milestoneItemsCrafted: String = "{player} has crafted {count} items!",
+    val milestoneTimePlayed: String = "{player} has played for {count} hours!",
+
     // Other
     val defaultServerName: String = "The server",
     val defaultServerType: String = "Minecraft {version}",

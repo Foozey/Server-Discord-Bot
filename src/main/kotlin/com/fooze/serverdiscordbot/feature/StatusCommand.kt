@@ -36,7 +36,7 @@ object StatusCommand : Command({ it.statusCommand }, { it.statusCommandInfo }) {
                 title = lang.statusTitle
                 description = Placeholder.replace(lang.statusDescription, values)
 
-                // System info
+                // System fields
                 field("")
                 field(lang.statusState, true) { "```\uD83D\uDFE2 ${lang.statusStateValue}```" }
                 field(lang.statusTps, true) { "```${getTicks(server, true)}```" }
