@@ -18,11 +18,15 @@ object ConfigHandler {
         ignoreUnknownKeys = true
     }
 
-    // Loads the config and language files
     fun load(logger: Logger) {
+        // Read the config file if it exists, otherwise use the default values
         val loadedConfig = if (configFile.exists()) configFile.readText() else null
+
+        // Load the config and language files
         config = loadMerged(loadedConfig, ModConfig())
         lang = loadLang(logger)
+
+        // Create the config directory if needed and write the config file
         configFile.parentFile.mkdirs()
         configFile.writeText(json.encodeToString(config))
     }

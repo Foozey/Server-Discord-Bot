@@ -19,13 +19,12 @@ abstract class Command(
 ) {
     var command: GuildChatInputCommand? = null
 
-    // Load the command into the bot
     suspend fun load(
         bot: Kord?,
         config: ModConfig,
         lang: LangConfig,
         logger: Logger,
-        server: MinecraftServer? = null
+        server: MinecraftServer?
     ) {
         // Create the command
         command = runCatching {

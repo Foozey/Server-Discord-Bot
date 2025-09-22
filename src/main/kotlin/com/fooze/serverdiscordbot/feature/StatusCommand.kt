@@ -65,8 +65,8 @@ object StatusCommand : Command({ it.statusCommand }, { it.statusCommandInfo }) {
     // Returns the server's CPU usage in %
     private fun getCpuUsage(): String {
         val osBean = ManagementFactory.getOperatingSystemMXBean() as OperatingSystemMXBean
-        val cpuLoad = osBean.processCpuLoad * 100
-        return String.format("%.1f", cpuLoad) + "%"
+        val load = osBean.processCpuLoad * 100
+        return String.format("%.1f", load) + "%"
     }
 
     // Returns the server's RAM usage in used MB / max MB
@@ -82,16 +82,16 @@ object StatusCommand : Command({ it.statusCommand }, { it.statusCommandInfo }) {
         return "${server.playerManager.currentPlayerCount} / ${server.playerManager.maxPlayerCount}"
     }
 
-    // Returns the server's player list up to 10 players, then counts the remaining
+    // Returns the server's player list up to 20 players, then counts the remaining
     private fun getPlayerList(lang: LangConfig, server: MinecraftServer): String {
         val players = server.playerManager.playerList
         if (players.isEmpty()) return ">>> ${lang.statusPlayersNone}"
-        val maxSize = 10
-        val remaining = players.size - maxSize
+        val max = 20
+        val remaining = players.size - max
         val values = mapOf("remaining" to remaining.toString())
 
         return buildString {
-            appendLine(">>> ${players.take(maxSize).joinToString("\n") { it.name.string }}")
+            appendLine(">>> ${players.take(max).joinToString("\n") { it.name.string }}")
             if (remaining > 0) append(Placeholder.replace(lang.statusPlayersMore, values))
         }
     }

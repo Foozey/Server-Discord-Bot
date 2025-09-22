@@ -24,30 +24,30 @@ object Announcer {
     fun load(scope: CoroutineScope, bot: Kord?, config: ModConfig, lang: LangConfig, logger: Logger) {
         // On player join
         ServerPlayConnectionEvents.JOIN.register { handler, _, _ ->
-            val player = handler.player.name.string
+            val name = handler.player.name.string
 
             // Placeholders
-            val values = mapOf("player" to player)
+            val values = mapOf("player" to name)
             val message = Placeholder.replace(lang.announceJoin, values)
 
             // Send join announcement and update presence
             scope.launch {
-                announcePlayerEvent(bot, config, lang, logger, null, Colors.GREEN, message, player)
+                announcePlayerEvent(bot, config, lang, logger, null, Colors.GREEN, message, name)
                 updatePresence(bot, lang, handler.player.server)
             }
         }
 
         // On player leave
         ServerPlayConnectionEvents.DISCONNECT.register { handler, _ ->
-            val player = handler.player.name.string
+            val name = handler.player.name.string
 
             // Placeholders
-            val values = mapOf("player" to player)
+            val values = mapOf("player" to name)
             val message = Placeholder.replace(lang.announceLeave, values)
 
             // Send leave announcement and update presence
             scope.launch {
-                announcePlayerEvent(bot, config, lang, logger, null, Colors.RED, message, player)
+                announcePlayerEvent(bot, config, lang, logger, null, Colors.RED, message, name)
                 updatePresence(bot, lang, handler.player.server)
             }
         }
@@ -135,11 +135,11 @@ object Announcer {
 
     // Updates the presence to show the current player count
     private suspend fun updatePresence(bot: Kord?, lang: LangConfig, server: MinecraftServer?) {
-        val playerCount = server?.playerManager?.currentPlayerCount ?: 0
-        val template = if (playerCount == 1) lang.announcePresence else lang.announcePresencePlural
-        val values = mapOf("count" to playerCount.toString())
+        val count = server?.playerManager?.currentPlayerCount ?: 0
+        val template = if (count == 1) lang.announcePresence else lang.announcePresencePlural
+        val values = mapOf("count" to count.toString())
 
-        if (playerCount > 0) {
+        if (count > 0) {
             bot?.editPresence { watching(Placeholder.replace(template, values)) }
         } else {
             bot?.editPresence { toPresence() }

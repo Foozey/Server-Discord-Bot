@@ -35,14 +35,20 @@ object WhitelistCommand : Command({ it.whitelistCommand }, { it.whitelistCommand
         // Build the embed
         event.interaction.deferPublicResponse().respond {
             embed {
+                // If the profile is invalid, send an error message
                 if (profile == null) {
                     description = Placeholder.replace(lang.whitelistInvalid, values)
                     color = Colors.RED
-                } else if (server.playerManager.whitelist.isAllowed(profile)) {
+                }
+
+                // If the player is already whitelisted, send a warning message
+                else if (server.playerManager.whitelist.isAllowed(profile)) {
                     description = Placeholder.replace(lang.whitelistExisting, values)
                     color = Colors.YELLOW
-                } else {
-                    // Add the player to the whitelist
+                }
+
+                // Add the player to the whitelist and send a success message
+                else {
                     server.playerManager.whitelist.add(WhitelistEntry(profile))
 
                     title = Placeholder.replace(lang.whitelistAddTitle, values)
@@ -50,7 +56,7 @@ object WhitelistCommand : Command({ it.whitelistCommand }, { it.whitelistCommand
                     color = Colors.GREEN
                     thumbnail { url = "https://mc-heads.net/avatar/${name}" }
 
-                    // Joining info
+                    // Secondary description
                     field("") { Placeholder.replace(lang.whitelistAddDescriptionInfo, values) }
 
                     // Server IP
