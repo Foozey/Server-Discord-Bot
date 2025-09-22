@@ -48,9 +48,16 @@ object StatsCommand : Command ({ it.statsCommand }, { it.statsCommandInfo }) {
                     description = Placeholder.replace(lang.statsInvalid, values)
                     color = Colors.RED
                 } else {
-                    val world = server.saveProperties.levelName
-                    val file = server.runDirectory.resolve("${world}/stats/${profile.id}.json").toFile()
-                    val stats = ServerStatHandler(server, file)
+                    val player = server.playerManager.getPlayer(name)
+
+                    // If the player is online, use their server stats, otherwise use the stat file
+                    val stats = if (player != null) {
+                        player.statHandler
+                    } else {
+                        val world = server.saveProperties.levelName
+                        val file = server.runDirectory.resolve("${world}/stats/${profile.id}.json").toFile()
+                        ServerStatHandler(server, file)
+                    }
 
                     // Stat values
                     val deaths = String.format("%,d", getStat(stats, Stats.DEATHS))
