@@ -52,19 +52,28 @@ object StatsCommand : Command ({ it.statsCommand }, { it.statsCommandInfo }) {
                     val file = server.runDirectory.resolve("${world}/stats/${profile.id}.json").toFile()
                     val stats = ServerStatHandler(server, file)
 
+                    // Stat values
+                    val deaths = String.format("%,d", getStat(stats, Stats.DEATHS))
+                    val playerKills = String.format("%,d", getStat(stats, Stats.PLAYER_KILLS))
+                    val mobKills = String.format("%,d", getStat(stats, Stats.MOB_KILLS))
+                    val blocksMined = String.format("%,d", getTotal(stats, Registries.BLOCK, Stats.MINED) { it })
+                    val blocksPlaced = String.format("%,d", getTotal(stats, Registries.BLOCK, Stats.USED) { it.asItem() })
+                    val itemsCrafted = String.format("%,d", getTotal(stats, Registries.ITEM, Stats.CRAFTED) { it })
+                    val timePlayed = String.format("%,.1f", getStat(stats, Stats.PLAY_TIME) / 72000.0).removeSuffix(".0") + " hours"
+
                     title = Placeholder.replace(lang.statsTitle, values)
                     description = Placeholder.replace(lang.statsDescription, values)
                     thumbnail { url = "https://mc-heads.net/player/${name}" }
 
                     // Stat fields
                     field("")
-                    field(lang.statsDeaths, true) { "```${getStat(stats, Stats.DEATHS)}```" }
-                    field(lang.statsPlayerKills, true) { "```${getStat(stats, Stats.PLAYER_KILLS)}```" }
-                    field(lang.statsMobKills, true) { "```${getStat(stats, Stats.MOB_KILLS)}```" }
-                    field(lang.statsBlocksMined, true) { "```${getTotal(stats, Registries.BLOCK, Stats.MINED) { it }}```" }
-                    field(lang.statsBlocksPlaced, true) { "```${getTotal(stats, Registries.BLOCK, Stats.USED) { it.asItem() }}```" }
-                    field(lang.statsItemsCrafted, true) { "```${getTotal(stats, Registries.ITEM, Stats.CRAFTED) { it }}```" }
-                    field(lang.statsTimePlayed, true) { "```${formatHours(getStat(stats, Stats.PLAY_TIME))}```" }
+                    field(lang.statsDeaths, true) { "```$deaths```" }
+                    field(lang.statsPlayerKills, true) { "```$playerKills```" }
+                    field(lang.statsMobKills, true) { "```$mobKills```" }
+                    field(lang.statsBlocksMined, true) { "```$blocksMined```" }
+                    field(lang.statsBlocksPlaced, true) { "```$blocksPlaced```" }
+                    field(lang.statsItemsCrafted, true) { "```$itemsCrafted```" }
+                    field(lang.statsTimePlayed, true) { "```$timePlayed```" }
                     field("")
 
                     // Last updated footer
@@ -96,11 +105,5 @@ object StatsCommand : Command ({ it.statsCommand }, { it.statsCommandInfo }) {
         return registry.sumOf { entry ->
             map(entry)?.let { stats.getStat(type.getOrCreateStat(it)) } ?: 0
         }
-    }
-
-    // Returns the time in hours for the provided ticks
-    private fun formatHours(ticks: Int): String {
-        val hours = ticks.toDouble() / 72000
-        return String.format("%.1f", hours).removeSuffix(".0") + " hours"
     }
 }

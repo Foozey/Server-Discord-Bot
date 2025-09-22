@@ -59,7 +59,7 @@ object Announcer {
                 val deaths = entity.statHandler.getStat(Stats.CUSTOM.getOrCreateStat(Stats.DEATHS))
 
                 // Placeholders
-                val values = mapOf("player" to name, "deaths" to deaths.toString())
+                val values = mapOf("player" to name, "deaths" to String.format("%,d", deaths))
                 val message = Placeholder.replace(lang.announceDeath, values)
                 val description = Placeholder.replace(lang.announceDeathTotal, values)
 

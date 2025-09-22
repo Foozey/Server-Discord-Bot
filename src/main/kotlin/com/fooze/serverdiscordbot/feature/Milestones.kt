@@ -52,7 +52,7 @@ object Milestones {
                                 // Placeholders
                                 val values = mapOf(
                                     "player" to name,
-                                    "count" to milestoneValue.toString()
+                                    "count" to String.format("%,d", milestoneValue)
                                 )
 
                                 // Send milestone announcement

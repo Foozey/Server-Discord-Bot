@@ -74,12 +74,14 @@ object StatusCommand : Command({ it.statusCommand }, { it.statusCommandInfo }) {
         val runtime = Runtime.getRuntime()
         val used = (runtime.totalMemory() - runtime.freeMemory()) / 1024 / 1024
         val max = runtime.maxMemory() / 1024 / 1024
-        return "$used MB / $max MB"
+        return "${String.format("%,d", used)} MB / ${String.format("%,d", max)} MB"
     }
 
     // Returns the server's player count in online / max
     private fun getPlayerCount(server: MinecraftServer): String {
-        return "${server.playerManager.currentPlayerCount} / ${server.playerManager.maxPlayerCount}"
+        val current = server.playerManager.currentPlayerCount
+        val max = server.playerManager.maxPlayerCount
+        return "${String.format("%,d", current)} / ${String.format("%,d", max)}"
     }
 
     // Returns the server's player list up to 20 players, then counts the remaining
@@ -88,7 +90,7 @@ object StatusCommand : Command({ it.statusCommand }, { it.statusCommandInfo }) {
         if (players.isEmpty()) return ">>> ${lang.statusPlayersNone}"
         val max = 20
         val remaining = players.size - max
-        val values = mapOf("remaining" to remaining.toString())
+        val values = mapOf("remaining" to String.format("%,d", remaining))
 
         return buildString {
             appendLine(">>> ${players.take(max).joinToString("\n") { it.name.string }}")
