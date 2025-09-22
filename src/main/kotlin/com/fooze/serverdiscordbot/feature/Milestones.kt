@@ -26,7 +26,7 @@ object Milestones {
                 val key = player.uuidAsString
                 val stats = player.statHandler
                 val name = player.name.string
-                val milestones = getMilestones(stats, lang)
+                val milestones = getMilestones(stats, config, lang)
 
                 // Get or create a map for the player's milestones
                 val playerMilestones = completedMilestones.computeIfAbsent(key) { ConcurrentHashMap() }
@@ -74,63 +74,68 @@ object Milestones {
         }
     }
 
-    private fun getMilestones(stats: ServerStatHandler, lang: LangConfig) = listOf(
-        // Deaths
-        Milestone(
-            stat = StatsCommand.getStat(stats, Stats.DEATHS),
-            interval = 10,
-            message = lang.milestoneDeaths,
-            key = "deaths"
-        ),
+    private fun getMilestones(stats: ServerStatHandler, config: ModConfig, lang: LangConfig): List<Milestone> {
+        val milestones = listOf(
+            // Deaths
+            Milestone(
+                stat = StatsCommand.getStat(stats, Stats.DEATHS),
+                interval = config.milestoneDeaths,
+                message = lang.milestoneDeaths,
+                key = "deaths"
+            ),
 
-        // Player Kills
-        Milestone(
-            stat = StatsCommand.getStat(stats, Stats.PLAYER_KILLS),
-            interval = 10,
-            message = lang.milestonePlayerKills,
-            key = "playerKills"
-        ),
+            // Player Kills
+            Milestone(
+                stat = StatsCommand.getStat(stats, Stats.PLAYER_KILLS),
+                interval = config.milestonePlayerKills,
+                message = lang.milestonePlayerKills,
+                key = "playerKills"
+            ),
 
-        // Mob Kills
-        Milestone(
-            stat = StatsCommand.getStat(stats, Stats.MOB_KILLS),
-            interval = 1000,
-            message = lang.milestoneMobKills,
-            key = "mobKills"
-        ),
+            // Mob Kills
+            Milestone(
+                stat = StatsCommand.getStat(stats, Stats.MOB_KILLS),
+                interval = config.milestoneMobKills,
+                message = lang.milestoneMobKills,
+                key = "mobKills"
+            ),
 
-        // Blocks Mined
-        Milestone(
-            stat = StatsCommand.getTotal(stats, Registries.BLOCK, Stats.MINED) { it },
-            interval = 10000,
-            message = lang.milestoneBlocksMined,
-            key = "blocksMined"
-        ),
+            // Blocks Mined
+            Milestone(
+                stat = StatsCommand.getTotal(stats, Registries.BLOCK, Stats.MINED) { it },
+                interval = config.milestoneBlocksMined,
+                message = lang.milestoneBlocksMined,
+                key = "blocksMined"
+            ),
 
-        // Blocks Placed
-        Milestone(
-            stat = StatsCommand.getTotal(stats, Registries.BLOCK, Stats.USED) { it.asItem() },
-            interval = 10000,
-            message = lang.milestoneBlocksPlaced,
-            key = "blocksPlaced"
-        ),
+            // Blocks Placed
+            Milestone(
+                stat = StatsCommand.getTotal(stats, Registries.BLOCK, Stats.USED) { it.asItem() },
+                interval = config.milestoneBlocksPlaced,
+                message = lang.milestoneBlocksPlaced,
+                key = "blocksPlaced"
+            ),
 
-        // Items Crafted
-        Milestone(
-            stat = StatsCommand.getTotal(stats, Registries.ITEM, Stats.CRAFTED) { it },
-            interval = 10000,
-            message = lang.milestoneItemsCrafted,
-            key = "itemsCrafted"
-        ),
+            // Items Crafted
+            Milestone(
+                stat = StatsCommand.getTotal(stats, Registries.ITEM, Stats.CRAFTED) { it },
+                interval = config.milestoneItemsCrafted,
+                message = lang.milestoneItemsCrafted,
+                key = "itemsCrafted"
+            ),
 
-        // Time Played
-        Milestone(
-            stat = StatsCommand.getStat(stats, Stats.PLAY_TIME) / 72000,
-            interval = 100,
-            message = lang.milestoneTimePlayed,
-            key = "timePlayed"
+            // Time Played
+            Milestone(
+                stat = StatsCommand.getStat(stats, Stats.PLAY_TIME) / 72000,
+                interval = config.milestoneTimePlayed,
+                message = lang.milestoneTimePlayed,
+                key = "timePlayed"
+            )
         )
-    )
+
+        // Disable milestones with an interval of 0
+        return milestones.filter { it.interval > 0 }
+    }
 
     private data class Milestone(
         val stat: Int, // The stat to track
