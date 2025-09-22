@@ -20,12 +20,12 @@ repositories {
 }
 
 dependencies {
-	// To change the versions, see the gradle.properties file
+	// Minecraft
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
-	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
-	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
-	// Fabric API
+	// Fabric
+    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 	modImplementation "net.fabricmc:fabric-language-kotlin:${project.fabric_kotlin_version}"
 
@@ -47,12 +47,14 @@ shadowJar {
 }
 
 remapJar {
+    dependsOn("shadowJar")
 	inputFile.set(shadowJar.archiveFile)
-	archiveClassifier.set("")
 }
 
-tasks.named("build") {
-	dependsOn("shadowJar")
+tasks.named("remapJar") {
+    doLast {
+        shadowJar.archiveFile.get().asFile.delete()
+    }
 }
 
 processResources {
@@ -74,9 +76,6 @@ tasks.withType(KotlinCompile).configureEach {
 }
 
 java {
-	// If you remove this line, sources will not be generated
-	withSourcesJar()
-
 	sourceCompatibility = JavaVersion.VERSION_21
 	targetCompatibility = JavaVersion.VERSION_21
 }
@@ -89,7 +88,7 @@ jar {
 	}
 }
 
-// See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing
+// See https://docs.gradle.org/current/userguide/publishing_maven.html
 publishing {
 	publications {
 		create("mavenJava", MavenPublication) {
