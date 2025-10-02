@@ -9,7 +9,7 @@ import java.io.File
 object ConfigHandler {
     var config: ModConfig = ModConfig()
     var lang: LangConfig = LangConfig()
-    private val configFile = File("config/$MOD_ID.json")
+    private val configFile = File("config/${MOD_ID}.json")
 
     // JSON serializer
     private val json = Json {
@@ -41,7 +41,7 @@ object ConfigHandler {
 
     // Loads the language file from the mod resources
     private fun loadLang(logger: Logger): LangConfig {
-        val path = "/assets/$MOD_ID/lang/${config.language}.json"
+        val path = "/assets/${MOD_ID}/lang/${config.language}.json"
         val stream = javaClass.getResourceAsStream(path)
 
         // Placeholders

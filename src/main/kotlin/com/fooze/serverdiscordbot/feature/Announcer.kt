@@ -128,7 +128,7 @@ object Announcer {
 
             author {
                 this.name = message
-                icon = "https://mc-heads.net/avatar/$player"
+                icon = "https://mc-heads.net/avatar/${player}"
             }
         }
     }
