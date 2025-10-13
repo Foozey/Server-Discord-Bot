@@ -20,18 +20,15 @@ repositories {
 }
 
 dependencies {
-	// Minecraft
-	minecraft "com.mojang:minecraft:${project.minecraft_version}"
-
 	// Fabric
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
     mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 	modImplementation "net.fabricmc:fabric-language-kotlin:${project.fabric_kotlin_version}"
 
 	// Kotlin
-	implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:${project.serialization_version}"
-	implementation "org.jetbrains.kotlinx:kotlinx-datetime:${project.datetime_version}"
+	implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:${project.kotlin_serialization_version}"
 
 	// Kord
 	implementation shadow("dev.kord:kord-core:${project.kord_version}")
@@ -43,7 +40,6 @@ shadowJar {
 	relocate("dev.kord", "shadow.dev.kord")
 	relocate("kotlinx.coroutines", "shadow.kotlinx.coroutines")
 	relocate("kotlinx.serialization", "shadow.kotlinx.serialization")
-	relocate("kotlinx.datetime", "shadow.kotlinx.datetime")
 }
 
 remapJar {

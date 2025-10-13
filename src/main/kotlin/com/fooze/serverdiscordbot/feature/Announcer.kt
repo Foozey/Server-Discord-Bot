@@ -33,7 +33,7 @@ object Announcer {
             // Send join announcement and update presence
             scope.launch {
                 announcePlayerEvent(bot, config, lang, logger, null, Colors.GREEN, message, name)
-                updatePresence(bot, lang, handler.player.server)
+                updatePresence(bot, lang, handler.player.entityWorld.server)
             }
         }
 
@@ -48,7 +48,7 @@ object Announcer {
             // Send leave announcement and update presence
             scope.launch {
                 announcePlayerEvent(bot, config, lang, logger, null, Colors.RED, message, name)
-                updatePresence(bot, lang, handler.player.server)
+                updatePresence(bot, lang, handler.player.entityWorld.server)
             }
         }
 

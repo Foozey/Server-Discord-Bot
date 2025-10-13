@@ -30,7 +30,7 @@ object StatsCommand : Command ({ it.statsCommand }, { it.statsCommandInfo }) {
         if (server == null) return
 
         val name = event.interaction.command.strings[lang.statsCommandPlayer]
-        val profile = server.gameProfileRepo.findProfileByName(name).orElse(null)
+        val profile = server.apiServices.profileRepository.findProfileByName(name).orElse(null)
 
         // Placeholders
         val values = mapOf(

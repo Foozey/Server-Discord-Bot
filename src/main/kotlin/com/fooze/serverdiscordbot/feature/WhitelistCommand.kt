@@ -11,6 +11,7 @@ import dev.kord.rest.builder.interaction.ChatInputCreateBuilder
 import dev.kord.rest.builder.interaction.string
 import dev.kord.rest.builder.message.embed
 import net.minecraft.server.MinecraftServer
+import net.minecraft.server.PlayerConfigEntry
 import net.minecraft.server.WhitelistEntry
 
 object WhitelistCommand : Command({ it.whitelistCommand }, { it.whitelistCommandInfo }) {
@@ -23,7 +24,7 @@ object WhitelistCommand : Command({ it.whitelistCommand }, { it.whitelistCommand
         if (server == null) return
 
         val name = event.interaction.command.strings[lang.whitelistCommandPlayer]
-        val profile = server.gameProfileRepo.findProfileByName(name).orElse(null)
+        val profile = server.apiServices.profileRepository.findProfileByName(name).orElse(null)
 
         // Placeholders
         val values = mapOf(
@@ -42,14 +43,14 @@ object WhitelistCommand : Command({ it.whitelistCommand }, { it.whitelistCommand
                 }
 
                 // If the player is already whitelisted, send a warning message
-                else if (server.playerManager.whitelist.isAllowed(profile)) {
+                else if (server.playerManager.whitelist.isAllowed(PlayerConfigEntry(profile))) {
                     description = Placeholder.replace(lang.whitelistExisting, values)
                     color = Colors.YELLOW
                 }
 
                 // Add the player to the whitelist and send a success message
                 else {
-                    server.playerManager.whitelist.add(WhitelistEntry(profile))
+                    server.playerManager.whitelist.add(WhitelistEntry(PlayerConfigEntry(profile)))
 
                     title = Placeholder.replace(lang.whitelistAddTitle, values)
                     description = Placeholder.replace(lang.whitelistAddDescription, values)
