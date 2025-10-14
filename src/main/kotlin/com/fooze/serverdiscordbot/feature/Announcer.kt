@@ -1,5 +1,6 @@
 package com.fooze.serverdiscordbot.feature
 
+import com.fooze.serverdiscordbot.ServerDiscordBot
 import com.fooze.serverdiscordbot.config.LangConfig
 import com.fooze.serverdiscordbot.config.ModConfig
 import com.fooze.serverdiscordbot.config.StreakHandler
@@ -48,6 +49,9 @@ object Announcer {
 
         // On player leave
         ServerPlayConnectionEvents.DISCONNECT.register { handler, _ ->
+            // Skip if the server is stopping
+            if (ServerDiscordBot.stopping) return@register
+
             val name = handler.player.name.string
 
             // Placeholders

@@ -20,6 +20,7 @@ object ServerDiscordBot : DedicatedServerModInitializer {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 	private var bot: Kord? = null
     private var server: MinecraftServer? = null
+    var stopping = false
 
 	override fun onInitializeServer() {
         // Load configs
@@ -82,6 +83,8 @@ object ServerDiscordBot : DedicatedServerModInitializer {
 
         // On server stop
 		ServerLifecycleEvents.SERVER_STOPPING.register {
+            stopping = true
+
 			runBlocking {
                 // Send stop announcement
                 Announcer.announceServerEvent(
