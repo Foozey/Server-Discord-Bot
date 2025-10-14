@@ -31,4 +31,21 @@ object Format {
             else -> serverType
         }
     }
+
+    // Escapes markdown characters in a string
+    fun escapeMarkdown(text: String): String {
+        return text
+            .replace("\\", "\\\\")
+            .replace("*", "\\*")
+            .replace("_", "\\_")
+            .replace("~", "\\~")
+            .replace("`", "\\`")
+            .replace("#", "\\#")
+            .replace("-", "\\-")
+            .replace("[", "\\[")
+            .replace("]", "\\]")
+            .replace("(", "\\(")
+            .replace(")", "\\)")
+            .replace(">", "\\>")
+    }
 }

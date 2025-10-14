@@ -69,6 +69,7 @@ object ServerDiscordBot : DedicatedServerModInitializer {
 					StatusCommand.load(bot, config, lang, logger, server)
 					WhitelistCommand.load(bot, config, lang, logger, server)
                     StatsCommand.load(bot, config, lang, logger, server)
+                    LeaderboardCommand.load(bot, config, lang, logger, server)
                     HelpCommand.load(bot, config, lang, logger, null)
                     Milestones.load(scope, bot, config, lang, logger)
 

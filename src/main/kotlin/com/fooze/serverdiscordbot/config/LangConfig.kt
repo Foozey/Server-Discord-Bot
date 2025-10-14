@@ -62,6 +62,15 @@ data class LangConfig(
     val statsItemsCrafted: String = "Items Crafted",
     val statsTimePlayed: String = "Time Played",
 
+    // Leaderboard Command
+    val leaderboardCommand: String = "leaderboard",
+    val leaderboardCommandInfo: String = "Displays a leaderboard for the provided stat",
+    val leaderboardCommandStat: String = "stat",
+    val leaderboardCommandStatInfo: String = "The stat to display the leaderboard for",
+    val leaderboardTitle: String = "{stat} Leaderboard",
+    val leaderboardDescription: String = "Displaying the top {count} players for {stat} on {server}",
+    val leaderboardUpdate: String = "Last updated <t:{time}:R>, use </{leaderboard}:{id}> to update",
+
     // Help Command
     val helpCommand: String = "help",
     val helpCommandInfo: String = "Displays a list of commands",

@@ -53,6 +53,14 @@
     "statsItemsCrafted": "Items Crafted",
     "statsTimePlayed": "Time Played",
 
+    "leaderboardCommand": "leaderboard",
+    "leaderboardCommandInfo": "Displays a leaderboard for the provided stat",
+    "leaderboardCommandStat": "stat",
+    "leaderboardCommandStatInfo": "The stat to display the leaderboard for",
+    "leaderboardTitle": "{stat} Leaderboard",
+    "leaderboardDescription": "Displaying the top {count} players for {stat} on {server}",
+    "leaderboardUpdate": "Last updated <t:{time}:R>, use </{leaderboard}:{id}> to update",
+
     "helpCommand": "help",
     "helpCommandInfo": "Displays a list of commands",
     "helpTitle": "Command Help",
