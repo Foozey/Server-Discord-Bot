@@ -2,6 +2,7 @@ package com.fooze.serverdiscordbot.feature
 
 import com.fooze.serverdiscordbot.config.LangConfig
 import com.fooze.serverdiscordbot.config.ModConfig
+import com.fooze.serverdiscordbot.config.StreakHandler
 import com.fooze.serverdiscordbot.util.Colors
 import com.fooze.serverdiscordbot.util.Format
 import com.fooze.serverdiscordbot.util.Placeholder
@@ -25,14 +26,22 @@ object Announcer {
         // On player join
         ServerPlayConnectionEvents.JOIN.register { handler, _, _ ->
             val name = handler.player.name.string
+            val streak = StreakHandler.getStreak(name)
 
             // Placeholders
-            val values = mapOf("player" to name)
+            val values = mapOf("player" to name, "count" to String.format("%,d", streak.count))
             val message = Placeholder.replace(lang.announceJoin, values)
+
+            // Include streak description if applicable
+            val description = if (streak.count > 1 && streak.updated) {
+                Placeholder.replace(lang.announceJoinDescription, values)
+            } else {
+                null
+            }
 
             // Send join announcement and update presence
             scope.launch {
-                announcePlayerEvent(bot, config, lang, logger, null, Colors.GREEN, message, name)
+                announcePlayerEvent(bot, config, lang, logger, description, Colors.GREEN, message, name)
                 updatePresence(bot, lang, handler.player.entityWorld.server)
             }
         }
@@ -61,7 +70,7 @@ object Announcer {
                 // Placeholders
                 val values = mapOf("player" to name, "deaths" to String.format("%,d", deaths))
                 val message = Placeholder.replace(lang.announceDeath, values)
-                val description = Placeholder.replace(lang.announceDeathTotal, values)
+                val description = Placeholder.replace(lang.announceDeathDescription, values)
 
                 // Send death announcement
                 scope.launch {

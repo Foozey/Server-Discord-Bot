@@ -9,7 +9,7 @@ import java.io.File
 object ConfigHandler {
     var config: ModConfig = ModConfig()
     var lang: LangConfig = LangConfig()
-    private val configFile = File("config/${MOD_ID}.json")
+    private val configFile = File("config/${MOD_ID}/config.json")
 
     // JSON serializer
     private val json = Json {

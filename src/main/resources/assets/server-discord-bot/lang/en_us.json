@@ -4,9 +4,10 @@
     "announceStopTitle": "Server stopped",
     "announceStopDescription": "{server} is now offline — see you soon!",
     "announceJoin": "{player} joined the game",
+    "announceJoinDescription": "\uD83D\uDD25 Daily streak: {count}",
     "announceLeave": "{player} left the game",
     "announceDeath": "{player} died",
-    "announceDeathTotal": "Total deaths: {deaths}",
+    "announceDeathDescription": "Total deaths: {deaths}",
     "announcePresence": "{count} player online",
     "announcePresencePlural": "{count} players online",
 
@@ -75,8 +76,8 @@
     "defaultServerName": "The server",
     "defaultServerType": "Minecraft {version}",
 
-    "logBotTokenMissing": "Bot token missing! Add it to config/server-discord-bot/config.json",
-    "logChannelIdMissing": "Channel ID missing! Add it to config/server-discord-bot/config.json",
+    "logBotTokenMissing": "Bot token missing! Add it to config/{modid}/config.json",
+    "logChannelIdMissing": "Channel ID missing! Add it to config/{modid}/config.json",
     "logLangMissing": "Unable to find language file for: {language}",
     "logLangMissingFallback": "Falling back to default language (en_us)",
     "logLoginSuccess": "Login successful!",

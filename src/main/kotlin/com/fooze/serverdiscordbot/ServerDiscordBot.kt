@@ -1,8 +1,10 @@
 package com.fooze.serverdiscordbot
 
 import com.fooze.serverdiscordbot.config.ConfigHandler
+import com.fooze.serverdiscordbot.config.StreakHandler
 import com.fooze.serverdiscordbot.feature.*
 import com.fooze.serverdiscordbot.util.Colors
+import com.fooze.serverdiscordbot.util.Placeholder
 import dev.kord.core.Kord
 import dev.kord.core.event.gateway.ReadyEvent
 import dev.kord.core.on
@@ -20,7 +22,11 @@ object ServerDiscordBot : DedicatedServerModInitializer {
     private var server: MinecraftServer? = null
 
 	override fun onInitializeServer() {
+        // Load configs
 		ConfigHandler.load(logger)
+        StreakHandler.load()
+
+        // Get configs
 		val config = ConfigHandler.config
         val lang = ConfigHandler.lang
 
@@ -28,13 +34,17 @@ object ServerDiscordBot : DedicatedServerModInitializer {
 		ServerLifecycleEvents.SERVER_STARTED.register { server ->
 			this.server = server
 
+            // Placeholders
+            val values = mapOf("modid" to MOD_ID)
+
+            // Check if bot token and channel ID are set
 			if (config.discordBotToken.isBlank()) {
-				logger.warn(lang.logBotTokenMissing)
+				logger.warn(Placeholder.replace(lang.logBotTokenMissing, values))
 				return@register
 			}
 
 			if (config.discordChannelId.isBlank()) {
-				logger.warn(lang.logChannelIdMissing)
+				logger.warn(Placeholder.replace(lang.logChannelIdMissing, values))
 				return@register
 			}
 

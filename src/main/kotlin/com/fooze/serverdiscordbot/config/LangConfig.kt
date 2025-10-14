@@ -1,6 +1,5 @@
 package com.fooze.serverdiscordbot.config
 
-import com.fooze.serverdiscordbot.ServerDiscordBot.MOD_ID
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -11,9 +10,10 @@ data class LangConfig(
     val announceStopTitle: String = "Server stopped",
     val announceStopDescription: String = "{server} is now offline — see you soon!",
     val announceJoin: String = "{player} joined the game",
+    val announceJoinDescription: String = "\uD83D\uDD25 Daily streak: {count}",
     val announceLeave: String = "{player} left the game",
     val announceDeath: String = "{player} died",
-    val announceDeathTotal: String = "Total deaths: {deaths}",
+    val announceDeathDescription: String = "Total deaths: {deaths}",
     val announcePresence: String = "{count} player online",
     val announcePresencePlural: String = "{count} players online",
 
@@ -89,8 +89,8 @@ data class LangConfig(
     val defaultServerType: String = "Minecraft {version}",
 
     // Logging
-    val logBotTokenMissing: String = "Bot token missing! Add it to config/${MOD_ID}.json",
-    val logChannelIdMissing: String = "Channel ID missing! Add it to config/${MOD_ID}.json",
+    val logBotTokenMissing: String = "Bot token missing! Add it to config/{modid}/config.json",
+    val logChannelIdMissing: String = "Channel ID missing! Add it to config/{modid}/config.json",
     val logLangMissing: String = "Unable to find language file for: {language}",
     val logLangMissingFallback: String = "Falling back to default language (en_us)",
     val logLoginSuccess: String = "Login successful!",
