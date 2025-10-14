@@ -29,7 +29,7 @@ object Announcer {
             val streak = StreakHandler.getStreak(name)
 
             // Placeholders
-            val values = mapOf("player" to name, "count" to String.format("%,d", streak.count))
+            val values = mapOf("player" to name, "streak" to String.format("%,d", streak.count))
             val message = Placeholder.replace(lang.announceJoin, values)
 
             // Include streak description if applicable

@@ -10,7 +10,7 @@ data class LangConfig(
     val announceStopTitle: String = "Server stopped",
     val announceStopDescription: String = "{server} is now offline — see you soon!",
     val announceJoin: String = "{player} joined the game",
-    val announceJoinDescription: String = "\uD83D\uDD25 Daily streak: {count}",
+    val announceJoinDescription: String = "\uD83D\uDD25 Daily streak: {streak}",
     val announceLeave: String = "{player} left the game",
     val announceDeathDescription: String = "Total deaths: {deaths}",
     val announcePresence: String = "{count} player online",
@@ -75,13 +75,13 @@ data class LangConfig(
     val helpStatsUsage: String = "Usage: /{stats} <player>",
 
     // Milestones
-    val milestoneDeaths: String = "{player} has died {count} times!",
-    val milestonePlayerKills: String = "{player} has killed {count} players!",
-    val milestoneMobKills: String = "{player} has killed {count} mobs!",
-    val milestoneBlocksMined: String = "{player} has mined {count} blocks!",
-    val milestoneBlocksPlaced: String = "{player} has placed {count} blocks!",
-    val milestoneItemsCrafted: String = "{player} has crafted {count} items!",
-    val milestoneTimePlayed: String = "{player} has played for {count} hours!",
+    val milestoneDeaths: String = "{player} has died {milestone} times!",
+    val milestonePlayerKills: String = "{player} has killed {milestone} players!",
+    val milestoneMobKills: String = "{player} has killed {milestone} mobs!",
+    val milestoneBlocksMined: String = "{player} has mined {milestone} blocks!",
+    val milestoneBlocksPlaced: String = "{player} has placed {milestone} blocks!",
+    val milestoneItemsCrafted: String = "{player} has crafted {milestone} items!",
+    val milestoneTimePlayed: String = "{player} has played for {milestone} hours!",
 
     // Other
     val defaultServerName: String = "The server",
