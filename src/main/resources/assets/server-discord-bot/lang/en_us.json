@@ -6,7 +6,6 @@
     "announceJoin": "{player} joined the game",
     "announceJoinDescription": "\uD83D\uDD25 Daily streak: {count}",
     "announceLeave": "{player} left the game",
-    "announceDeath": "{player} died",
     "announceDeathDescription": "Total deaths: {deaths}",
     "announcePresence": "{count} player online",
     "announcePresencePlural": "{count} players online",

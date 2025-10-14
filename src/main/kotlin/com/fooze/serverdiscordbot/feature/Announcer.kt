@@ -62,14 +62,14 @@ object Announcer {
         }
 
         // On player death
-        ServerLivingEntityEvents.AFTER_DEATH.register { entity, _ ->
+        ServerLivingEntityEvents.AFTER_DEATH.register { entity, damageSource ->
             if (entity is ServerPlayerEntity) {
                 val name = entity.name.string
                 val deaths = entity.statHandler.getStat(Stats.CUSTOM.getOrCreateStat(Stats.DEATHS))
+                val message = damageSource.getDeathMessage(entity).string
 
                 // Placeholders
-                val values = mapOf("player" to name, "deaths" to String.format("%,d", deaths))
-                val message = Placeholder.replace(lang.announceDeath, values)
+                val values = mapOf("deaths" to String.format("%,d", deaths))
                 val description = Placeholder.replace(lang.announceDeathDescription, values)
 
                 // Send death announcement

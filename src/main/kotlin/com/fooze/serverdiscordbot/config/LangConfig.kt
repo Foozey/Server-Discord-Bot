@@ -12,7 +12,6 @@ data class LangConfig(
     val announceJoin: String = "{player} joined the game",
     val announceJoinDescription: String = "\uD83D\uDD25 Daily streak: {count}",
     val announceLeave: String = "{player} left the game",
-    val announceDeath: String = "{player} died",
     val announceDeathDescription: String = "Total deaths: {deaths}",
     val announcePresence: String = "{count} player online",
     val announcePresencePlural: String = "{count} players online",
