@@ -6,7 +6,6 @@ import com.fooze.serverdiscordbot.config.ModConfig
 import com.fooze.serverdiscordbot.config.StreakHandler
 import com.fooze.serverdiscordbot.util.Colors
 import com.fooze.serverdiscordbot.util.Format
-import com.fooze.serverdiscordbot.util.Placeholder
 import dev.kord.common.Color
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.Kord
@@ -30,15 +29,19 @@ object Announcer {
             val streak = StreakHandler.getStreak(name)
 
             // Placeholders
-            val values = mapOf("player" to name, "streak" to String.format("%,d", streak.count))
-            val message = Placeholder.replace(lang.announceJoin, values)
+            val placeholders = mapOf(
+                "player" to Format.escape(name),
+                "streak" to Format.number(streak.count)
+            )
 
             // Include streak description if applicable
             val description = if (streak.count > 1 && streak.updated) {
-                Placeholder.replace(lang.announceJoinDescription, values)
+                Format.replace(lang.announceJoinDescription, placeholders)
             } else {
                 null
             }
+
+            val message = Format.replace(lang.announceJoin, placeholders)
 
             // Send join announcement and update presence
             scope.launch {
@@ -55,8 +58,9 @@ object Announcer {
             val name = handler.player.name.string
 
             // Placeholders
-            val values = mapOf("player" to name)
-            val message = Placeholder.replace(lang.announceLeave, values)
+            val placeholders = mapOf("player" to Format.escape(name))
+
+            val message = Format.replace(lang.announceLeave, placeholders)
 
             // Send leave announcement and update presence
             scope.launch {
@@ -70,11 +74,12 @@ object Announcer {
             if (entity is ServerPlayerEntity) {
                 val name = entity.name.string
                 val deaths = entity.statHandler.getStat(Stats.CUSTOM.getOrCreateStat(Stats.DEATHS))
-                val message = damageSource.getDeathMessage(entity).string
 
                 // Placeholders
-                val values = mapOf("deaths" to String.format("%,d", deaths))
-                val description = Placeholder.replace(lang.announceDeathDescription, values)
+                val placeholders = mapOf("deaths" to Format.number(deaths))
+
+                val description = Format.replace(lang.announceDeathDescription, placeholders)
+                val message = Format.escape(damageSource.getDeathMessage(entity).string)
 
                 // Send death announcement
                 scope.launch {
@@ -111,14 +116,14 @@ object Announcer {
     ) {
         announce(bot, config, lang, logger) {
             // Placeholders
-            val values = mapOf(
+            val placeholders = mapOf(
                 "server" to Format.serverName(config, lang, true),
                 "ip" to config.serverIp
             )
 
             // Build the embed
             this.title = title
-            this.description = Placeholder.replace(description, values)
+            this.description = Format.replace(description, placeholders)
             this.color = color
         }
     }
@@ -147,13 +152,22 @@ object Announcer {
     }
 
     // Updates the presence to show the current player count
-    private suspend fun updatePresence(bot: Kord?, lang: LangConfig, server: MinecraftServer?) {
-        val count = server?.playerManager?.currentPlayerCount ?: 0
-        val template = if (count == 1) lang.announcePresence else lang.announcePresencePlural
-        val values = mapOf("count" to count.toString())
+    private suspend fun updatePresence(bot: Kord?, lang: LangConfig, server: MinecraftServer) {
+        val count = server.playerManager.currentPlayerCount
 
+        // Use a plural if there are multiple players online
+        val template = if (count == 1) {
+            lang.announcePresence
+        } else {
+            lang.announcePresencePlural
+        }
+
+        // Placeholders
+        val placeholders = mapOf("count" to Format.number(count))
+
+        // Only update presence when there are players online
         if (count > 0) {
-            bot?.editPresence { watching(Placeholder.replace(template, values)) }
+            bot?.editPresence { watching(Format.replace(template, placeholders)) }
         } else {
             bot?.editPresence { toPresence() }
         }

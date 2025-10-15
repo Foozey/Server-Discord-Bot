@@ -1,9 +1,8 @@
-package com.fooze.serverdiscordbot.feature
+package com.fooze.serverdiscordbot.feature.commands
 
 import com.fooze.serverdiscordbot.config.LangConfig
 import com.fooze.serverdiscordbot.config.ModConfig
 import com.fooze.serverdiscordbot.util.Format
-import com.fooze.serverdiscordbot.util.Placeholder
 import com.sun.management.OperatingSystemMXBean
 import dev.kord.core.behavior.interaction.response.respond
 import dev.kord.core.event.interaction.GuildChatInputCommandInteractionCreateEvent
@@ -14,15 +13,17 @@ import java.time.Instant
 
 object StatusCommand : Command({ it.statusCommand }, { it.statusCommandInfo }) {
     override suspend fun run(
-        event: GuildChatInputCommandInteractionCreateEvent,
         config: ModConfig,
         lang: LangConfig,
-        server: MinecraftServer?
+        server: MinecraftServer?,
+        event: GuildChatInputCommandInteractionCreateEvent
     ) {
         if (server == null) return
 
+        val response = event.interaction.deferPublicResponse()
+
         // Placeholders
-        val values = mapOf(
+        val placeholders = mapOf(
             "server" to Format.serverName(config, lang, false),
             "count" to getPlayerCount(server),
             "time" to Instant.now().epochSecond.toString(),
@@ -31,42 +32,46 @@ object StatusCommand : Command({ it.statusCommand }, { it.statusCommandInfo }) {
         )
 
         // Build the embed
-        event.interaction.deferPublicResponse().respond {
+        response.respond {
             embed {
                 title = lang.statusTitle
-                description = Placeholder.replace(lang.statusDescription, values)
+                description = Format.replace(lang.statusDescription, placeholders)
 
                 // System fields
                 field("")
                 field(lang.statusState, true) { "```\uD83D\uDFE2 ${lang.statusStateValue}```" }
-                field(lang.statusTps, true) { "```${getTicks(server, true)}```" }
-                field(lang.statusMspt, true) { "```${getTicks(server, false)}```" }
+                field(lang.statusTps, true) { "```${Format.decimal(getTps(server))} ticks```" }
+                field(lang.statusMspt, true) { "```${Format.decimal(getMspt(server))} ms```" }
                 field(lang.statusCpu, true) { "```${getCpuUsage()}```" }
                 field(lang.statusRam, true) { "```${getRamUsage()}```" }
                 field("")
 
                 // Player list
-                field(Placeholder.replace(lang.statusPlayers, values)) { getPlayerList(lang, server) }
+                field(Format.replace(lang.statusPlayers, placeholders)) { getPlayerList(lang, server) }
                 field("")
 
                 // Last updated footer
-                field("") { "-# ${Placeholder.replace(lang.statusUpdate, values)}" }
+                field("") { "-# ${Format.replace(lang.statusUpdate, placeholders)}" }
             }
         }
     }
 
-    // Returns the server's TPS if isTps is true, MSPT otherwise
-    private fun getTicks(server: MinecraftServer, isTps: Boolean): String {
-        val mspt = server.tickTimes.average() / 1.0E6
-        val tps = (1000.0 / mspt).coerceAtMost(20.0)
-        return String.format("%.1f", if (isTps) tps else mspt)
+    // Returns the server's TPS
+    private fun getTps(server: MinecraftServer): Double {
+        val mspt = getMspt(server)
+        return (1000.0 / mspt).coerceAtMost(20.0)
+    }
+
+    // Returns the server's MSPT
+    private fun getMspt(server: MinecraftServer): Double {
+        return server.tickTimes.average() / 1.0E6
     }
 
     // Returns the server's CPU usage in %
     private fun getCpuUsage(): String {
         val osBean = ManagementFactory.getOperatingSystemMXBean() as OperatingSystemMXBean
         val load = osBean.processCpuLoad * 100
-        return String.format("%.1f", load) + "%"
+        return Format.decimal(load) + "%"
     }
 
     // Returns the server's RAM usage in used MB / max MB
@@ -74,27 +79,37 @@ object StatusCommand : Command({ it.statusCommand }, { it.statusCommandInfo }) {
         val runtime = Runtime.getRuntime()
         val used = (runtime.totalMemory() - runtime.freeMemory()) / 1024 / 1024
         val max = runtime.maxMemory() / 1024 / 1024
-        return "${String.format("%,d", used)} MB / ${String.format("%,d", max)} MB"
+        return "${Format.number(used)} MB / ${Format.number(max)} MB"
     }
 
     // Returns the server's player count in online / max
     private fun getPlayerCount(server: MinecraftServer): String {
         val current = server.playerManager.currentPlayerCount
         val max = server.playerManager.maxPlayerCount
-        return "${String.format("%,d", current)} / ${String.format("%,d", max)}"
+        return "${Format.number(current)} / ${Format.number(max)}"
     }
 
     // Returns the server's player list up to 20 players, then counts the remaining
     private fun getPlayerList(lang: LangConfig, server: MinecraftServer): String {
         val players = server.playerManager.playerList
-        if (players.isEmpty()) return ">>> ${lang.statusPlayersNone}"
         val max = 20
         val remaining = players.size - max
-        val values = mapOf("remaining" to String.format("%,d", remaining))
+
+        // Show a message if the server is empty
+        if (players.isEmpty()) {
+            return ">>> ${lang.statusPlayersNone}"
+        }
+
+        // Placeholders
+        val placeholders = mapOf("remaining" to Format.number(remaining))
 
         return buildString {
-            appendLine(">>> ${players.take(max).joinToString("\n") { it.name.string }}")
-            if (remaining > 0) append(Placeholder.replace(lang.statusPlayersMore, values))
+            appendLine(">>> ${players.take(max).joinToString("\n") { Format.escape(it.name.string) }}")
+
+            // Append a message if there are more players than the max
+            if (remaining > 0) {
+                append(Format.replace(lang.statusPlayersMore, placeholders))
+            }
         }
     }
 }

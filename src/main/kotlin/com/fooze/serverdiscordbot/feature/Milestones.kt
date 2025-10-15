@@ -4,14 +4,13 @@ import com.fooze.serverdiscordbot.config.LangConfig
 import com.fooze.serverdiscordbot.config.ModConfig
 import com.fooze.serverdiscordbot.feature.Announcer.announcePlayerEvent
 import com.fooze.serverdiscordbot.util.Colors
-import com.fooze.serverdiscordbot.util.Placeholder
+import com.fooze.serverdiscordbot.util.Format
+import com.fooze.serverdiscordbot.util.PlayerStats
 import dev.kord.core.Kord
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents
-import net.minecraft.registry.Registries
-import net.minecraft.stat.ServerStatHandler
-import net.minecraft.stat.Stats
+import net.minecraft.server.MinecraftServer
 import org.slf4j.Logger
 import java.util.concurrent.ConcurrentHashMap
 
@@ -23,23 +22,22 @@ object Milestones {
     fun load(scope: CoroutineScope, bot: Kord?, config: ModConfig, lang: LangConfig, logger: Logger) {
         ServerTickEvents.END_SERVER_TICK.register { server ->
             for (player in server.playerManager.playerList) {
-                val key = player.uuidAsString
-                val stats = player.statHandler
+                val uuid = player.uuidAsString
                 val name = player.name.string
-                val milestones = getMilestones(stats, config, lang)
+                val milestones = getMilestones(config, lang, server, name)
 
                 // Get or create a map for the player's milestones
-                val playerMilestones = completedMilestones.computeIfAbsent(key) { ConcurrentHashMap() }
+                val playerMilestones = completedMilestones.computeIfAbsent(uuid) { ConcurrentHashMap() }
 
                 // If the player isn't initialized (e.g., first join on restart), store the milestones already reached
-                if (initializedPlayers.putIfAbsent(key, true) == null) {
+                if (initializedPlayers.putIfAbsent(uuid, true) == null) {
                     for ((stat, interval, _, key) in milestones) {
                         playerMilestones[key] = stat / interval
                     }
                 } else {
                     scope.launch {
                         for ((stat, interval, message, key) in milestones) {
-                            val last = playerMilestones[key] ?: 0
+                            val last = playerMilestones.getOrDefault(key, 0)
                             val current = stat / interval
 
                             // If the player's current milestone > last stored milestone, store the current milestone
@@ -50,9 +48,9 @@ object Milestones {
                                 val milestoneValue = current * interval
 
                                 // Placeholders
-                                val values = mapOf(
-                                    "player" to name,
-                                    "milestone" to String.format("%,d", milestoneValue)
+                                val placeholders = mapOf(
+                                    "player" to Format.escape(name),
+                                    "milestone" to Format.number(milestoneValue)
                                 )
 
                                 // Send milestone announcement
@@ -63,7 +61,7 @@ object Milestones {
                                     logger = logger,
                                     description = null,
                                     color = Colors.BLUE,
-                                    message = Placeholder.replace(message, values),
+                                    message = Format.replace(message, placeholders),
                                     player = name
                                 )
                             }
@@ -74,69 +72,28 @@ object Milestones {
         }
     }
 
-    private fun getMilestones(stats: ServerStatHandler, config: ModConfig, lang: LangConfig): List<Milestone> {
-        val milestones = listOf(
-            // Deaths
-            Milestone(
-                stat = StatsCommand.getStat(stats, Stats.DEATHS),
-                interval = config.milestoneDeaths,
-                message = lang.milestoneDeaths,
-                key = "deaths"
-            ),
+    // Returns a list of milestones for the given player
+    private fun getMilestones(config: ModConfig, lang: LangConfig, server: MinecraftServer, name: String): List<Milestone> {
+        val player = server.playerManager.getPlayer(name)
 
-            // Player Kills
-            Milestone(
-                stat = StatsCommand.getStat(stats, Stats.PLAYER_KILLS),
-                interval = config.milestonePlayerKills,
-                message = lang.milestonePlayerKills,
-                key = "playerKills"
-            ),
+        if (player != null) {
+            val stats = PlayerStats.get(server, player.gameProfile)
 
-            // Mob Kills
-            Milestone(
-                stat = StatsCommand.getStat(stats, Stats.MOB_KILLS),
-                interval = config.milestoneMobKills,
-                message = lang.milestoneMobKills,
-                key = "mobKills"
-            ),
-
-            // Blocks Mined
-            Milestone(
-                stat = StatsCommand.getTotal(stats, Registries.BLOCK, Stats.MINED) { it },
-                interval = config.milestoneBlocksMined,
-                message = lang.milestoneBlocksMined,
-                key = "blocksMined"
-            ),
-
-            // Blocks Placed
-            Milestone(
-                stat = StatsCommand.getTotal(stats, Registries.BLOCK, Stats.USED) { it.asItem() },
-                interval = config.milestoneBlocksPlaced,
-                message = lang.milestoneBlocksPlaced,
-                key = "blocksPlaced"
-            ),
-
-            // Items Crafted
-            Milestone(
-                stat = StatsCommand.getTotal(stats, Registries.ITEM, Stats.CRAFTED) { it },
-                interval = config.milestoneItemsCrafted,
-                message = lang.milestoneItemsCrafted,
-                key = "itemsCrafted"
-            ),
-
-            // Time Played
-            Milestone(
-                stat = StatsCommand.getStat(stats, Stats.PLAY_TIME) / 72000,
-                interval = config.milestoneTimePlayed,
-                message = lang.milestoneTimePlayed,
-                key = "timePlayed"
-            )
-        )
-
-        // Disable milestones with an interval of 0
-        return milestones.filter { it.interval > 0 }
+            return listOf(
+                Milestone(stats.deaths, config.milestoneDeaths, lang.milestoneDeaths, "deaths"),
+                Milestone(stats.playerKills, config.milestonePlayerKills, lang.milestonePlayerKills, "playerKills"),
+                Milestone(stats.mobKills, config.milestoneMobKills, lang.milestoneMobKills, "mobKills"),
+                Milestone(stats.blocksMined, config.milestoneBlocksMined, lang.milestoneBlocksMined, "blocksMined"),
+                Milestone(stats.blocksPlaced, config.milestoneBlocksPlaced, lang.milestoneBlocksPlaced, "blocksPlaced"),
+                Milestone(stats.itemsCrafted, config.milestoneItemsCrafted, lang.milestoneItemsCrafted, "itemsCrafted"),
+                Milestone(stats.timePlayed / 72000, config.milestoneTimePlayed, lang.milestoneTimePlayed, "timePlayed")
+            ).filter { it.interval > 0 }
+        } else {
+            return emptyList()
+        }
     }
 
+    // Defines a milestone for a stat
     private data class Milestone(
         val stat: Int, // The stat to track
         val interval: Int, // The interval per milestone (e.g., every 10 deaths)

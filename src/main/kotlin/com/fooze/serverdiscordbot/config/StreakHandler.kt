@@ -25,7 +25,7 @@ object StreakHandler {
         }
     }
 
-    // Gets the streak of the provided player
+    // Gets the streak of the given player
     fun getStreak(player: String): Streak {
         val today = LocalDate.now()
 
@@ -63,7 +63,7 @@ object StreakHandler {
 
     data class Streak(
         val count: Int, // The current streak of the player
-        val updated: Boolean // Whether the streak has been updated
+        val updated: Boolean // Whether the streak has been updated today
     )
 
     @Serializable

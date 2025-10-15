@@ -1,10 +1,9 @@
-package com.fooze.serverdiscordbot.feature
+package com.fooze.serverdiscordbot.feature.commands
 
 import com.fooze.serverdiscordbot.config.LangConfig
 import com.fooze.serverdiscordbot.config.ModConfig
 import com.fooze.serverdiscordbot.util.Colors
 import com.fooze.serverdiscordbot.util.Format
-import com.fooze.serverdiscordbot.util.Placeholder
 import dev.kord.core.behavior.interaction.response.respond
 import dev.kord.core.event.interaction.GuildChatInputCommandInteractionCreateEvent
 import dev.kord.rest.builder.interaction.ChatInputCreateBuilder
@@ -16,35 +15,36 @@ import net.minecraft.server.WhitelistEntry
 
 object WhitelistCommand : Command({ it.whitelistCommand }, { it.whitelistCommandInfo }) {
     override suspend fun run(
-        event: GuildChatInputCommandInteractionCreateEvent,
         config: ModConfig,
         lang: LangConfig,
-        server: MinecraftServer?
+        server: MinecraftServer?,
+        event: GuildChatInputCommandInteractionCreateEvent
     ) {
         if (server == null) return
 
+        val response = event.interaction.deferPublicResponse()
         val name = event.interaction.command.strings[lang.whitelistCommandPlayer]
-        val profile = server.apiServices.profileRepository.findProfileByName(name).orElse(null)
+        val profile = server.apiServices.profileResolver.getProfileByName(name).orElse(null)
 
         // Placeholders
-        val values = mapOf(
+        val placeholders = mapOf(
             "server" to Format.serverName(config, lang, false),
             "type" to Format.serverType(config, lang, server),
-            "player" to name.toString()
+            "player" to Format.escape(name.toString())
         )
 
         // Build the embed
-        event.interaction.deferPublicResponse().respond {
+        response.respond {
             embed {
                 // If the profile is invalid, send an error message
                 if (profile == null) {
-                    description = Placeholder.replace(lang.whitelistInvalid, values)
+                    description = Format.replace(lang.whitelistInvalid, placeholders)
                     color = Colors.RED
                 }
 
                 // If the player is already whitelisted, send a warning message
                 else if (server.playerManager.whitelist.isAllowed(PlayerConfigEntry(profile))) {
-                    description = Placeholder.replace(lang.whitelistExisting, values)
+                    description = Format.replace(lang.whitelistExisting, placeholders)
                     color = Colors.YELLOW
                 }
 
@@ -52,13 +52,13 @@ object WhitelistCommand : Command({ it.whitelistCommand }, { it.whitelistCommand
                 else {
                     server.playerManager.whitelist.add(WhitelistEntry(PlayerConfigEntry(profile)))
 
-                    title = Placeholder.replace(lang.whitelistAddTitle, values)
-                    description = Placeholder.replace(lang.whitelistAddDescription, values)
+                    title = Format.replace(lang.whitelistAddTitle, placeholders)
+                    description = Format.replace(lang.whitelistAddDescription, placeholders)
                     color = Colors.GREEN
                     thumbnail { url = "https://mc-heads.net/avatar/${name}" }
 
                     // Secondary description
-                    field("") { Placeholder.replace(lang.whitelistAddDescriptionInfo, values) }
+                    field("") { Format.replace(lang.whitelistAddDescriptionInfo, placeholders) }
 
                     // Server IP
                     field("") {

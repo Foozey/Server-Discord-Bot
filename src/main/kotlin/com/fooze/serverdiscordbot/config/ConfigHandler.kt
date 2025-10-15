@@ -1,7 +1,7 @@
 package com.fooze.serverdiscordbot.config
 
 import com.fooze.serverdiscordbot.ServerDiscordBot.MOD_ID
-import com.fooze.serverdiscordbot.util.Placeholder
+import com.fooze.serverdiscordbot.util.Format
 import kotlinx.serialization.json.*
 import org.slf4j.Logger
 import java.io.File
@@ -45,11 +45,11 @@ object ConfigHandler {
         val stream = javaClass.getResourceAsStream(path)
 
         // Placeholders
-        val values = mapOf("language" to config.language)
+        val placeholders = mapOf("language" to config.language)
 
         // Fallback to defaults if the language file is missing
         if (stream == null) {
-            logger.warn(Placeholder.replace(lang.logLangMissing, values))
+            logger.warn(Format.replace(lang.logLangMissing, placeholders))
             logger.warn(lang.logLangMissingFallback)
             return LangConfig()
         }

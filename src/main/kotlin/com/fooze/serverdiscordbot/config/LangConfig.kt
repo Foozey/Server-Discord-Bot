@@ -64,11 +64,11 @@ data class LangConfig(
 
     // Leaderboard Command
     val leaderboardCommand: String = "leaderboard",
-    val leaderboardCommandInfo: String = "Displays a leaderboard for the provided stat",
+    val leaderboardCommandInfo: String = "Displays a stat's leaderboard",
     val leaderboardCommandStat: String = "stat",
     val leaderboardCommandStatInfo: String = "The stat to display the leaderboard for",
-    val leaderboardTitle: String = "{stat} Leaderboard",
-    val leaderboardDescription: String = "Displaying the top {count} players for {stat} on {server}",
+    val leaderboardTitle: String = "{statTitle} Leaderboard",
+    val leaderboardDescription: String = "Displaying the top 10 players for {statDescription} on {server}",
     val leaderboardUpdate: String = "Last updated <t:{time}:R>, use </{leaderboard}:{id}> to update",
 
     // Help Command
@@ -82,6 +82,8 @@ data class LangConfig(
     val helpWhitelistUsage: String = "Usage: /{whitelist} <player>",
     val helpStats: String = "</{stats}:{statsId}> — Displays a player's statistics",
     val helpStatsUsage: String = "Usage: /{stats} <player>",
+    val helpLeaderboard: String = "</{leaderboard}:{leaderboardId}> — Displays a stat's leaderboard",
+    val helpLeaderboardUsage: String = "Usage: /{leaderboard} <stat>",
 
     // Milestones
     val milestoneDeaths: String = "{player} has died {milestone} times!",

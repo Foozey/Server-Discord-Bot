@@ -54,11 +54,11 @@
     "statsTimePlayed": "Time Played",
 
     "leaderboardCommand": "leaderboard",
-    "leaderboardCommandInfo": "Displays a leaderboard for the provided stat",
+    "leaderboardCommandInfo": "Displays a stat's leaderboard",
     "leaderboardCommandStat": "stat",
     "leaderboardCommandStatInfo": "The stat to display the leaderboard for",
-    "leaderboardTitle": "{stat} Leaderboard",
-    "leaderboardDescription": "Displaying the top {count} players for {stat} on {server}",
+    "leaderboardTitle": "{statTitle} Leaderboard",
+    "leaderboardDescription": "Displaying the top 10 players for {statDescription} on {server}",
     "leaderboardUpdate": "Last updated <t:{time}:R>, use </{leaderboard}:{id}> to update",
 
     "helpCommand": "help",
@@ -71,6 +71,8 @@
     "helpWhitelistUsage": "Usage: /{whitelist} <player>",
     "helpStats": "</{stats}:{statsId}> — Displays a player's statistics",
     "helpStatsUsage": "Usage: /{stats} <player>",
+    "helpLeaderboard": "</{leaderboard}:{leaderboardId}> — Displays a stat's leaderboard",
+    "helpLeaderboardUsage": "Usage: /{leaderboard} <stat>",
 
     "milestoneDeaths": "{player} has died {milestone} times!",
     "milestonePlayerKills": "{player} has killed {milestone} players!",

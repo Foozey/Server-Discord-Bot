@@ -2,9 +2,11 @@ package com.fooze.serverdiscordbot
 
 import com.fooze.serverdiscordbot.config.ConfigHandler
 import com.fooze.serverdiscordbot.config.StreakHandler
-import com.fooze.serverdiscordbot.feature.*
+import com.fooze.serverdiscordbot.feature.Announcer
+import com.fooze.serverdiscordbot.feature.Milestones
+import com.fooze.serverdiscordbot.feature.commands.*
 import com.fooze.serverdiscordbot.util.Colors
-import com.fooze.serverdiscordbot.util.Placeholder
+import com.fooze.serverdiscordbot.util.Format
 import dev.kord.core.Kord
 import dev.kord.core.event.gateway.ReadyEvent
 import dev.kord.core.on
@@ -36,16 +38,16 @@ object ServerDiscordBot : DedicatedServerModInitializer {
 			this.server = server
 
             // Placeholders
-            val values = mapOf("modid" to MOD_ID)
+            val placeholders = mapOf("modid" to MOD_ID)
 
             // Check if bot token and channel ID are set
 			if (config.discordBotToken.isBlank()) {
-				logger.warn(Placeholder.replace(lang.logBotTokenMissing, values))
+				logger.warn(Format.replace(lang.logBotTokenMissing, placeholders))
 				return@register
 			}
 
 			if (config.discordChannelId.isBlank()) {
-				logger.warn(Placeholder.replace(lang.logChannelIdMissing, values))
+				logger.warn(Format.replace(lang.logChannelIdMissing, placeholders))
 				return@register
 			}
 
