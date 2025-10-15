@@ -58,8 +58,7 @@ object StatusCommand : Command({ it.statusCommand }, { it.statusCommandInfo }) {
 
     // Returns the server's TPS
     private fun getTps(server: MinecraftServer): Double {
-        val mspt = getMspt(server)
-        return (1000.0 / mspt).coerceAtMost(20.0)
+        return (1000.0 / getMspt(server)).coerceAtMost(20.0)
     }
 
     // Returns the server's MSPT
