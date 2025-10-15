@@ -42,7 +42,7 @@ object StatusCommand : Command({ it.statusCommand }, { it.statusCommandInfo }) {
                 field(lang.statusState, true) { "```\uD83D\uDFE2 ${lang.statusStateValue}```" }
                 field(lang.statusTps, true) { "```${Format.decimal(getTps(server))} ticks```" }
                 field(lang.statusMspt, true) { "```${Format.decimal(getMspt(server))} ms```" }
-                field(lang.statusCpu, true) { "```${getCpuUsage()}```" }
+                field(lang.statusCpu, true) { "```${Format.decimal(getCpuUsage())}%```" }
                 field(lang.statusRam, true) { "```${getRamUsage()}```" }
                 field("")
 
@@ -66,11 +66,10 @@ object StatusCommand : Command({ it.statusCommand }, { it.statusCommandInfo }) {
         return server.tickTimes.average() / 1.0E6
     }
 
-    // Returns the server's CPU usage in %
-    private fun getCpuUsage(): String {
+    // Returns the server's CPU usage
+    private fun getCpuUsage(): Double {
         val osBean = ManagementFactory.getOperatingSystemMXBean() as OperatingSystemMXBean
-        val load = osBean.processCpuLoad * 100
-        return Format.decimal(load) + "%"
+        return osBean.processCpuLoad * 100
     }
 
     // Returns the server's RAM usage in used MB / max MB
