@@ -69,6 +69,7 @@ data class LangConfig(
     val leaderboardCommandStatInfo: String = "The stat to display the leaderboard for",
     val leaderboardTitle: String = "{statTitle} Leaderboard",
     val leaderboardDescription: String = "Displaying the top 10 players for {statDescription} on {server}",
+    val leaderboardEmpty: String = "No player stats found! Your server may not have any players yet",
     val leaderboardUpdate: String = "Last updated <t:{time}:R>, use </{leaderboard}:{id}> to update",
 
     // Help Command

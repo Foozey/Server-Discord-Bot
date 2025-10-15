@@ -59,6 +59,7 @@
     "leaderboardCommandStatInfo": "The stat to display the leaderboard for",
     "leaderboardTitle": "{statTitle} Leaderboard",
     "leaderboardDescription": "Displaying the top 10 players for {statDescription} on {server}",
+    "leaderboardEmpty": "No player stats found! Your server may not have any players yet",
     "leaderboardUpdate": "Last updated <t:{time}:R>, use </{leaderboard}:{id}> to update",
 
     "helpCommand": "help",

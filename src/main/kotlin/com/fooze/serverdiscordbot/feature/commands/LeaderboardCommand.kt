@@ -2,6 +2,7 @@ package com.fooze.serverdiscordbot.feature.commands
 
 import com.fooze.serverdiscordbot.config.LangConfig
 import com.fooze.serverdiscordbot.config.ModConfig
+import com.fooze.serverdiscordbot.util.Colors
 import com.fooze.serverdiscordbot.util.Format
 import com.fooze.serverdiscordbot.util.PlayerStats
 import dev.kord.core.behavior.interaction.response.respond
@@ -31,19 +32,43 @@ object LeaderboardCommand : Command({ it.leaderboardCommand }, { it.leaderboardC
         val key = event.interaction.command.strings[lang.leaderboardCommandStat]
         val (statName, statValue) = stats(lang)[key]!!
 
-        // Get the stats folder and check if it exists
+        // Set of players who have stats available
+        val players = mutableSetOf<UUID>()
+
+        // If the stats folder exists, add all player UUIDs to the set
         val world = server.saveProperties.levelName
         val folder = server.runDirectory.resolve("${world}/stats")
-        if (!folder.exists()) return
 
-        // Get each player from the stats folder and their stat value
-        val playerStats = folder.listDirectoryEntries().mapNotNull { file ->
+        if (folder.exists()) {
+            for (file in folder.listDirectoryEntries()) {
+                runCatching {
+                    players.add(UUID.fromString(file.nameWithoutExtension))
+                }
+            }
+        }
+
+        // Add all online player UUIDs to the set
+        for (player in server.playerManager.playerList) {
+            players.add(player.uuid)
+        }
+
+        // If the player set is empty, send a warning message
+        if (players.isEmpty()) {
+            response.respond {
+                embed {
+                    description = lang.leaderboardEmpty
+                    color = Colors.YELLOW
+                }
+            }
+
+            return
+        }
+
+        // Get player stats using the UUIDs in the player set
+        val playerStats = players.mapNotNull { uuid ->
             runCatching {
-                val uuid = UUID.fromString(file.nameWithoutExtension)
                 val profile = server.apiServices.profileResolver.getProfileById(uuid).orElse(null)
-                val stats = PlayerStats.get(server, profile)
-
-                profile.name to statValue(stats)
+                profile.name to statValue(PlayerStats.get(server, profile))
             }.getOrNull()
         }
 
