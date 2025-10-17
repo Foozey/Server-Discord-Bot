@@ -10,9 +10,9 @@ import net.minecraft.server.MinecraftServer
 
 object HelpCommand : Command({ it.helpCommand }, { it.helpCommandInfo }) {
     override suspend fun run(
+        server: MinecraftServer?,
         config: ModConfig,
         lang: LangConfig,
-        server: MinecraftServer?,
         event: GuildChatInputCommandInteractionCreateEvent
     ) {
         val response = event.interaction.deferPublicResponse()

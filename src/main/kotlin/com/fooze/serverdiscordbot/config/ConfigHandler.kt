@@ -9,7 +9,8 @@ import java.io.File
 object ConfigHandler {
     var config: ModConfig = ModConfig()
     var lang: LangConfig = LangConfig()
-    private val configFile = File("config/${MOD_ID}/config.json")
+    private val file = File("config/${MOD_ID}/config.json")
+    private var isValid = true
 
     // JSON serializer
     private val json = Json {
@@ -18,25 +19,61 @@ object ConfigHandler {
         ignoreUnknownKeys = true
     }
 
+    // Loads the config from the file if it exists, otherwise uses the default values
     fun load(logger: Logger) {
-        // Read the config file if it exists, otherwise use the default values
-        val loadedConfig = if (configFile.exists()) configFile.readText() else null
+        val loadedConfig = if (file.exists()) {
+            file.readText()
+        } else {
+            null
+        }
 
-        // Load the config and language files
-        config = loadMerged(loadedConfig, ModConfig())
+        config = loadMerged(logger, loadedConfig, ModConfig(), file.path)
         lang = loadLang(logger)
+        save(logger, lang)
+    }
 
-        // Create the config directory if needed and write the config file
-        configFile.parentFile.mkdirs()
-        configFile.writeText(json.encodeToString(config))
+    // Saves the config to the file if the config is valid
+    private fun save(logger: Logger, lang: LangConfig) {
+        if (!isValid) return
+
+        runCatching {
+            file.parentFile.mkdirs()
+            file.writeText(json.encodeToString(config))
+        }.onFailure {
+            // Placeholders
+            val placeholders = mapOf("path" to file.path)
+
+            logger.error(lang.logConfigSaveFail, placeholders)
+            logger.error(it.message)
+        }
     }
 
     // Merges the loaded JSON with the default values
-    private inline fun <reified T> loadMerged(loadedConfig: String?, defaultConfig: T): T {
-        if (loadedConfig == null) return defaultConfig
-        val loaded = json.parseToJsonElement(loadedConfig).jsonObject
-        val default = json.encodeToJsonElement(defaultConfig).jsonObject
-        return json.decodeFromJsonElement(JsonObject(default + loaded))
+    private inline fun <reified Config> loadMerged(
+        logger: Logger,
+        loadedConfig: String?,
+        defaultConfig: Config,
+        path: String
+    ): Config {
+        // If the config file is missing, fallback to defaults
+        if (loadedConfig == null) {
+            return defaultConfig
+        }
+
+        return runCatching {
+            val loaded = json.parseToJsonElement(loadedConfig).jsonObject
+            val default = json.encodeToJsonElement(defaultConfig).jsonObject
+            json.decodeFromJsonElement<Config>(JsonObject(default + loaded))
+        }.getOrElse {
+            // Placeholders
+            val placeholders = mapOf("path" to path)
+
+            // If the config file is invalid, fallback to defaults
+            logger.error(Format.replace(lang.logConfigInvalid, placeholders))
+            logger.error(it.message)
+            isValid = false
+            defaultConfig
+        }
     }
 
     // Loads the language file from the mod resources
@@ -45,15 +82,14 @@ object ConfigHandler {
         val stream = javaClass.getResourceAsStream(path)
 
         // Placeholders
-        val placeholders = mapOf("language" to config.language)
+        val placeholders = mapOf("path" to path)
 
-        // Fallback to defaults if the language file is missing
+        // If the language file is missing, fallback to defaults
         if (stream == null) {
             logger.warn(Format.replace(lang.logLangMissing, placeholders))
-            logger.warn(lang.logLangMissingFallback)
             return LangConfig()
         }
 
-        return loadMerged(stream.reader().readText(), LangConfig())
+        return loadMerged(logger, stream.reader().readText(), LangConfig(), path)
     }
 }

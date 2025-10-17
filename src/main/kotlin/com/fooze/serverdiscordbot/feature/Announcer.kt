@@ -22,11 +22,12 @@ import net.minecraft.stat.Stats
 import org.slf4j.Logger
 
 object Announcer {
-    fun load(scope: CoroutineScope, bot: Kord?, config: ModConfig, lang: LangConfig, logger: Logger) {
+    fun load(logger: Logger, scope: CoroutineScope, bot: Kord?, config: ModConfig, lang: LangConfig) {
         // On player join
         ServerPlayConnectionEvents.JOIN.register { handler, _, _ ->
             val name = handler.player.name.string
-            val streak = StreakHandler.getStreak(name)
+            val streak = StreakHandler.getStreak(logger, lang, name)
+            val server = handler.player.entityWorld.server
 
             // Placeholders
             val placeholders = mapOf(
@@ -45,8 +46,8 @@ object Announcer {
 
             // Send join announcement and update presence
             scope.launch {
-                announcePlayerEvent(bot, config, lang, logger, description, Colors.GREEN, message, name)
-                updatePresence(bot, lang, handler.player.entityWorld.server)
+                announcePlayerEvent(logger, bot, config, lang, description, Colors.GREEN, message, name)
+                updatePresence(bot, server, lang)
             }
         }
 
@@ -56,6 +57,7 @@ object Announcer {
             if (ServerDiscordBot.stopping) return@register
 
             val name = handler.player.name.string
+            val server = handler.player.entityWorld.server
 
             // Placeholders
             val placeholders = mapOf("player" to Format.escape(name))
@@ -64,8 +66,8 @@ object Announcer {
 
             // Send leave announcement and update presence
             scope.launch {
-                announcePlayerEvent(bot, config, lang, logger, null, Colors.RED, message, name)
-                updatePresence(bot, lang, handler.player.entityWorld.server)
+                announcePlayerEvent(logger, bot, config, lang, null, Colors.RED, message, name)
+                updatePresence(bot, server, lang)
             }
         }
 
@@ -83,7 +85,7 @@ object Announcer {
 
                 // Send death announcement
                 scope.launch {
-                    announcePlayerEvent(bot, config, lang, logger, description, Colors.RED, message, name)
+                    announcePlayerEvent(logger, bot, config, lang, description, Colors.RED, message, name)
                 }
             }
         }
@@ -91,30 +93,33 @@ object Announcer {
 
     // Creates an announcement and sends it to the configured channel
     private suspend fun announce(
+        logger: Logger,
         bot: Kord?,
         config: ModConfig,
         lang: LangConfig,
-        logger: Logger,
         embed: EmbedBuilder.() -> Unit
     ) {
+        if (bot == null) return
+
         runCatching {
-            bot?.getChannelOf<TextChannel>(Snowflake(config.discordChannelId))?.createEmbed(embed)
+            val channel = bot.getChannelOf<TextChannel>(Snowflake(config.discordChannelId)) ?: return
+            channel.createEmbed(embed)
         }.onFailure {
-            logger.error(lang.logAnnounceFail, it)
+            logger.error(lang.logAnnounceFail)
         }
     }
 
     // Announces a server event
     suspend fun announceServerEvent(
+        logger: Logger,
         bot: Kord?,
         config: ModConfig,
         lang: LangConfig,
-        logger: Logger,
         title: String,
         description: String,
         color: Color
     ) {
-        announce(bot, config, lang, logger) {
+        announce(logger, bot, config, lang) {
             // Placeholders
             val placeholders = mapOf(
                 "server" to Format.serverName(config, lang, true),
@@ -130,16 +135,16 @@ object Announcer {
 
     // Announces a player event
     suspend fun announcePlayerEvent(
+        logger: Logger,
         bot: Kord?,
         config: ModConfig,
         lang: LangConfig,
-        logger: Logger,
         description: String?,
         color: Color,
         message: String,
         player: String
     ) {
-        announce(bot, config, lang, logger) {
+        announce(logger, bot, config, lang) {
             // Build the embed
             this.description = description
             this.color = color
@@ -152,7 +157,9 @@ object Announcer {
     }
 
     // Updates the presence to show the current player count
-    private suspend fun updatePresence(bot: Kord?, lang: LangConfig, server: MinecraftServer) {
+    private suspend fun updatePresence(bot: Kord?, server: MinecraftServer, lang: LangConfig) {
+        if (bot == null) return
+
         val count = server.playerManager.currentPlayerCount
 
         // Use a plural if there are multiple players online
@@ -167,9 +174,9 @@ object Announcer {
 
         // Only update presence when there are players online
         if (count > 0) {
-            bot?.editPresence { watching(Format.replace(template, placeholders)) }
+            bot.editPresence { watching(Format.replace(template, placeholders)) }
         } else {
-            bot?.editPresence { toPresence() }
+            bot.editPresence { toPresence() }
         }
     }
 }

@@ -19,9 +19,9 @@ import kotlin.io.path.nameWithoutExtension
 
 object LeaderboardCommand : Command({ it.leaderboardCommand }, { it.leaderboardCommandInfo }) {
     override suspend fun run(
+        server: MinecraftServer?,
         config: ModConfig,
         lang: LangConfig,
-        server: MinecraftServer?,
         event: GuildChatInputCommandInteractionCreateEvent
     ) {
         if (server == null) return
@@ -100,7 +100,7 @@ object LeaderboardCommand : Command({ it.leaderboardCommand }, { it.leaderboardC
     }
 
     // Defines the stat as a required command option with choices
-    override suspend fun options(builder: ChatInputCreateBuilder, lang: LangConfig) {
+    override suspend fun options(lang: LangConfig, builder: ChatInputCreateBuilder) {
         builder.string(lang.leaderboardCommandStat, lang.leaderboardCommandStatInfo) {
             required = true
 

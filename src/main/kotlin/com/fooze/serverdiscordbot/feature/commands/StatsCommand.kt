@@ -15,9 +15,9 @@ import java.time.Instant
 
 object StatsCommand : Command({ it.statsCommand }, { it.statsCommandInfo }) {
     override suspend fun run(
+        server: MinecraftServer?,
         config: ModConfig,
         lang: LangConfig,
-        server: MinecraftServer?,
         event: GuildChatInputCommandInteractionCreateEvent
     ) {
         if (server == null) return
@@ -71,7 +71,7 @@ object StatsCommand : Command({ it.statsCommand }, { it.statsCommandInfo }) {
     }
 
     // Defines the player as a required command option
-    override suspend fun options(builder: ChatInputCreateBuilder, lang: LangConfig) {
+    override suspend fun options(lang: LangConfig, builder: ChatInputCreateBuilder) {
         builder.string(lang.statsCommandPlayer, lang.statsCommandPlayerInfo) {
             required = true
         }

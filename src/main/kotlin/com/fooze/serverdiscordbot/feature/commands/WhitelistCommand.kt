@@ -15,9 +15,9 @@ import net.minecraft.server.WhitelistEntry
 
 object WhitelistCommand : Command({ it.whitelistCommand }, { it.whitelistCommandInfo }) {
     override suspend fun run(
+        server: MinecraftServer?,
         config: ModConfig,
         lang: LangConfig,
-        server: MinecraftServer?,
         event: GuildChatInputCommandInteractionCreateEvent
     ) {
         if (server == null) return
@@ -29,7 +29,7 @@ object WhitelistCommand : Command({ it.whitelistCommand }, { it.whitelistCommand
         // Placeholders
         val placeholders = mapOf(
             "server" to Format.serverName(config, lang, false),
-            "type" to Format.serverType(config, lang, server),
+            "type" to Format.serverType(server, config, lang),
             "player" to Format.escape(name.toString())
         )
 
@@ -74,7 +74,7 @@ object WhitelistCommand : Command({ it.whitelistCommand }, { it.whitelistCommand
     }
 
     // Defines the player as a required command option
-    override suspend fun options(builder: ChatInputCreateBuilder, lang: LangConfig) {
+    override suspend fun options(lang: LangConfig, builder: ChatInputCreateBuilder) {
         builder.string(lang.whitelistCommandPlayer, lang.whitelistCommandPlayerInfo) {
             required = true
         }

@@ -19,7 +19,7 @@ object Format {
     }
 
     // Returns the server's type based on the configured modpack info
-    fun serverType(config: ModConfig, lang: LangConfig, server: MinecraftServer): String {
+    fun serverType(server: MinecraftServer, config: ModConfig, lang: LangConfig): String {
         val hasName = config.serverModpackName.isNotBlank()
         val hasVersion = config.serverModpackVersion.isNotBlank()
         val hasUrl = config.serverModpackUrl.isNotBlank()

@@ -88,8 +88,11 @@
 
     "logBotTokenMissing": "Bot token missing! Add it to config/{modid}/config.json",
     "logChannelIdMissing": "Channel ID missing! Add it to config/{modid}/config.json",
-    "logLangMissing": "Unable to find language file for: {language}",
-    "logLangMissingFallback": "Falling back to default language (en_us)",
+    "logConfigInvalid": "Invalid config values for: {path}, falling back to defaults",
+    "logConfigSaveFail": "Failed to save config for: {path}",
+    "logLangMissing": "Unable to find language file for: {path}, falling back to defaults",
+    "logStreakDataInvalid": "Invalid streak data for: {path}, disabling streaks",
+    "logStreakDataSaveFail": "Failed to save streak data for: {path}",
     "logLoginSuccess": "Login successful!",
     "logLoginFail": "Login failed! Your bot token may be invalid",
     "logAnnounceFail": "Announcement failed! Your channel ID may be invalid",

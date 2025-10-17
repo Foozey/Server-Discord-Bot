@@ -20,41 +20,43 @@ abstract class Command(
     var command: GuildChatInputCommand? = null
 
     suspend fun load(
-        bot: Kord?,
-        config: ModConfig,
-        lang: LangConfig,
         logger: Logger,
-        server: MinecraftServer?
+        bot: Kord?,
+        server: MinecraftServer?,
+        config: ModConfig,
+        lang: LangConfig
     ) {
-        // Create the command
-        command = runCatching {
-            val channel = bot?.getChannelOf<TextChannel>(Snowflake(config.discordChannelId)) ?: return
+        if (bot == null) return
 
-            bot.createGuildChatInputCommand(channel.guildId, name(lang), description(lang)) {
-                options(this, lang)
+        // Create the command
+        runCatching {
+            val channel = bot.getChannelOf<TextChannel>(Snowflake(config.discordChannelId)) ?: return
+
+            command = bot.createGuildChatInputCommand(channel.guildId, name(lang), description(lang)) {
+                options(lang, this)
             }
         }.onFailure {
             // Placeholders
             val placeholders = mapOf("command" to name(lang))
 
-            logger.error(Format.replace(lang.logCommandFail, placeholders), it)
-        }.getOrNull() ?: return
+            logger.error(Format.replace(lang.logCommandFail, placeholders))
+        }
 
         // Create the interaction
-        bot?.on<GuildChatInputCommandInteractionCreateEvent> {
+        bot.on<GuildChatInputCommandInteractionCreateEvent> {
             if (interaction.command.rootName != command?.name) return@on
-            run(config, lang, server, this)
+            run(server, config, lang, this)
         }
     }
 
     // The options the command can use (e.g., /whitelist <player>)
-    open suspend fun options(builder: ChatInputCreateBuilder, lang: LangConfig) {}
+    open suspend fun options(lang: LangConfig, builder: ChatInputCreateBuilder) {}
 
     // The interaction to run when the command is used
     abstract suspend fun run(
+        server: MinecraftServer?,
         config: ModConfig,
         lang: LangConfig,
-        server: MinecraftServer?,
         event: GuildChatInputCommandInteractionCreateEvent,
     )
 }

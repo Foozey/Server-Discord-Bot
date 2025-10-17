@@ -19,12 +19,12 @@ object Milestones {
     private val completedMilestones = ConcurrentHashMap<String, MutableMap<String, Int>>()
     private val initializedPlayers = ConcurrentHashMap<String, Boolean>()
 
-    fun load(scope: CoroutineScope, bot: Kord?, config: ModConfig, lang: LangConfig, logger: Logger) {
+    fun load(logger: Logger, scope: CoroutineScope, bot: Kord?, config: ModConfig, lang: LangConfig) {
         ServerTickEvents.END_SERVER_TICK.register { server ->
             for (player in server.playerManager.playerList) {
                 val uuid = player.uuidAsString
                 val name = player.name.string
-                val milestones = getMilestones(config, lang, server, name)
+                val milestones = getMilestones(server, config, lang, name)
 
                 // Get or create a map for the player's milestones
                 val playerMilestones = completedMilestones.computeIfAbsent(uuid) { ConcurrentHashMap() }
@@ -73,7 +73,7 @@ object Milestones {
     }
 
     // Returns a list of milestones for the given player
-    private fun getMilestones(config: ModConfig, lang: LangConfig, server: MinecraftServer, name: String): List<Milestone> {
+    private fun getMilestones(server: MinecraftServer, config: ModConfig, lang: LangConfig, name: String): List<Milestone> {
         val player = server.playerManager.getPlayer(name)
 
         if (player != null) {

@@ -102,8 +102,11 @@ data class LangConfig(
     // Logging
     val logBotTokenMissing: String = "Bot token missing! Add it to config/{modid}/config.json",
     val logChannelIdMissing: String = "Channel ID missing! Add it to config/{modid}/config.json",
-    val logLangMissing: String = "Unable to find language file for: {language}",
-    val logLangMissingFallback: String = "Falling back to default language (en_us)",
+    val logConfigInvalid: String = "Invalid config values for: {path}, falling back to defaults",
+    val logConfigSaveFail: String = "Failed to save config for: {path}",
+    val logLangMissing: String = "Unable to find language file for: {path}, falling back to defaults",
+    val logStreakDataInvalid: String = "Invalid streak data for: {path}, disabling streaks",
+    val logStreakDataSaveFail: String = "Failed to save streak data for: {path}",
     val logLoginSuccess: String = "Login successful!",
     val logLoginFail: String = "Login failed! Your bot token may be invalid",
     val logAnnounceFail: String = "Announcement failed! Your channel ID may be invalid",

@@ -13,9 +13,9 @@ import java.time.Instant
 
 object StatusCommand : Command({ it.statusCommand }, { it.statusCommandInfo }) {
     override suspend fun run(
+        server: MinecraftServer?,
         config: ModConfig,
         lang: LangConfig,
-        server: MinecraftServer?,
         event: GuildChatInputCommandInteractionCreateEvent
     ) {
         if (server == null) return
@@ -47,7 +47,7 @@ object StatusCommand : Command({ it.statusCommand }, { it.statusCommandInfo }) {
                 field("")
 
                 // Player list
-                field(Format.replace(lang.statusPlayers, placeholders)) { getPlayerList(lang, server) }
+                field(Format.replace(lang.statusPlayers, placeholders)) { getPlayerList(server, lang) }
                 field("")
 
                 // Last updated footer
@@ -88,7 +88,7 @@ object StatusCommand : Command({ it.statusCommand }, { it.statusCommandInfo }) {
     }
 
     // Returns the server's player list up to 20 players, then counts the remaining
-    private fun getPlayerList(lang: LangConfig, server: MinecraftServer): String {
+    private fun getPlayerList(server: MinecraftServer, lang: LangConfig): String {
         val players = server.playerManager.playerList
         val max = 20
         val remaining = players.size - max

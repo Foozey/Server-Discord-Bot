@@ -27,11 +27,11 @@ object ServerDiscordBot : DedicatedServerModInitializer {
 	override fun onInitializeServer() {
         // Load configs
 		ConfigHandler.load(logger)
-        StreakHandler.load()
-
-        // Get configs
-		val config = ConfigHandler.config
+        val config = ConfigHandler.config
         val lang = ConfigHandler.lang
+
+        // Load streak data
+        StreakHandler.load(logger, lang)
 
         // On server start
 		ServerLifecycleEvents.SERVER_STARTED.register { server ->
@@ -67,19 +67,22 @@ object ServerDiscordBot : DedicatedServerModInitializer {
                     )
 
 					// Load features
-					Announcer.load(scope, bot, config, lang, logger)
-					StatusCommand.load(bot, config, lang, logger, server)
-					WhitelistCommand.load(bot, config, lang, logger, server)
-                    StatsCommand.load(bot, config, lang, logger, server)
-                    LeaderboardCommand.load(bot, config, lang, logger, server)
-                    HelpCommand.load(bot, config, lang, logger, null)
-                    Milestones.load(scope, bot, config, lang, logger)
+					Announcer.load(logger, scope, bot, config, lang)
+					StatusCommand.load(logger, bot, server, config, lang)
+					WhitelistCommand.load(logger, bot, server, config, lang)
+                    StatsCommand.load(logger, bot, server, config, lang)
+                    LeaderboardCommand.load(logger, bot, server, config, lang)
+                    HelpCommand.load(logger, bot, null, config, lang)
+                    Milestones.load(logger, scope, bot, config, lang)
 
                     // Start the bot
-                    bot?.on<ReadyEvent> { logger.info(lang.logLoginSuccess) }
+                    bot?.on<ReadyEvent> {
+                        logger.info(lang.logLoginSuccess)
+                    }
+
                     bot?.login()
 				}.onFailure {
-                    logger.error(lang.logLoginFail, it)
+                    logger.error(lang.logLoginFail)
 				}
 			}
 		}
