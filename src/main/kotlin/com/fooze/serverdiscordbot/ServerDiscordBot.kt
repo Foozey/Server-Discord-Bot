@@ -7,14 +7,18 @@ import com.fooze.serverdiscordbot.feature.Milestones
 import com.fooze.serverdiscordbot.feature.commands.*
 import com.fooze.serverdiscordbot.util.Colors
 import com.fooze.serverdiscordbot.util.Format
+import dev.kord.common.annotation.KordInternal
+import dev.kord.common.http.httpEngine
 import dev.kord.core.Kord
-import dev.kord.core.event.gateway.ReadyEvent
-import dev.kord.core.on
+import dev.kord.rest.request.KtorRequestHandler
+import dev.kord.rest.service.RestClient
+import io.ktor.client.*
 import kotlinx.coroutines.*
 import net.fabricmc.api.DedicatedServerModInitializer
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents
 import net.minecraft.server.MinecraftServer
 import org.slf4j.LoggerFactory
+import kotlin.time.ExperimentalTime
 
 object ServerDiscordBot : DedicatedServerModInitializer {
 	const val MOD_ID = "server-discord-bot"
@@ -40,18 +44,25 @@ object ServerDiscordBot : DedicatedServerModInitializer {
             // Placeholders
             val placeholders = mapOf("modid" to MOD_ID)
 
-            // Check if bot token and channel ID are set
+            // Check if the bot token is set
 			if (config.discordBotToken.isBlank()) {
 				logger.warn(Format.replace(lang.logBotTokenMissing, placeholders))
 				return@register
 			}
 
+            // Check if the channel ID is set
 			if (config.discordChannelId.isBlank()) {
 				logger.warn(Format.replace(lang.logChannelIdMissing, placeholders))
 				return@register
 			}
 
 			scope.launch {
+                // Check if the bot token is valid
+                if (!isValidToken(config.discordBotToken)) {
+                    logger.error(lang.logLoginFail)
+                    return@launch
+                }
+
 				runCatching {
 					bot = Kord(config.discordBotToken)
 
@@ -76,10 +87,7 @@ object ServerDiscordBot : DedicatedServerModInitializer {
                     Milestones.load(logger, scope, bot, config, lang)
 
                     // Start the bot
-                    bot?.on<ReadyEvent> {
-                        logger.info(lang.logLoginSuccess)
-                    }
-
+                    logger.info(lang.logLoginSuccess)
                     bot?.login()
 				}.onFailure {
                     logger.error(lang.logLoginFail)
@@ -109,4 +117,16 @@ object ServerDiscordBot : DedicatedServerModInitializer {
 			}
 		}
 	}
+
+    // Checks if a bot token is valid by trying to get its user
+    @OptIn(KordInternal::class, ExperimentalTime::class)
+    private suspend fun isValidToken(token: String): Boolean {
+        return HttpClient(httpEngine()).use { client ->
+            val rest = RestClient(KtorRequestHandler(client, token = token))
+
+            runCatching {
+                rest.user.getCurrentUser()
+            }.isSuccess
+        }
+    }
 }
