@@ -36,7 +36,7 @@ object Announcer {
             )
 
             // Include streak description if applicable
-            val description = if (streak.count > 1 && streak.updated) {
+            val description = if (streak.count > 1 && streak.increased) {
                 Format.replace(lang.announceJoinDescription, placeholders)
             } else {
                 null

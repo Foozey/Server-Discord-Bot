@@ -42,50 +42,50 @@ object StreakHandler {
             return Streak(0, false)
         }
 
+        var changed = false
+
         // Get the current date
         val today = LocalDate.now()
 
         // If the player has no streak data, create a new streak data object
         val streakData = data.getOrPut(player) {
-            StreakData(today.toString(), 1).also {
-                save(lang, logger)
-            }
+            changed = true
+            StreakData(today.toString(), 1)
         }
 
         // Get the last join date of the player or set to today if invalid
         val lastJoin = runCatching {
             LocalDate.parse(streakData.lastJoin)
         }.getOrElse {
+            changed = true
             streakData.lastJoin = today.toString()
-            save(lang, logger)
             today
-        }
-
-        // If the streak is 0 or below, reset it to 1
-        if (streakData.streak <= 0) {
-            streakData.streak = 1
-            save(lang, logger)
         }
 
         // Get the days since the last join date
         val daysSince = ChronoUnit.DAYS.between(lastJoin, today)
-        val updated = daysSince != 0L
+        val increased = daysSince != 0L
 
         // Calculate the streak
         val count = when (daysSince) {
             0L -> streakData.streak // Player already joined today
             1L -> streakData.streak + 1 // Player joined consecutive days
             else -> 1 // Player missed a day
-        }
+        }.coerceAtLeast(1)
 
-        // Update the streak data if the player joined a new day
-        if (updated) {
+        // Update the streak data if the player joins a new day or if the streak is 0 or less
+        if (increased || streakData.streak <= 0) {
+            changed = true
             streakData.lastJoin = today.toString()
             streakData.streak = count
+        }
+
+        // Save the streak data if it was changed
+        if (changed) {
             save(lang, logger)
         }
 
-        return Streak(count, updated)
+        return Streak(count, increased)
     }
 
     // Saves the streak data to the file
@@ -104,7 +104,7 @@ object StreakHandler {
 
     data class Streak(
         val count: Int, // The current streak of the player
-        val updated: Boolean // Whether the streak has been updated today
+        val increased: Boolean // Whether the streak has been updated today
     )
 
     @Serializable
