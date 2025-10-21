@@ -49,7 +49,7 @@ object Milestones {
 
                                 // Placeholders
                                 val placeholders = mapOf(
-                                    "player" to Format.escape(name),
+                                    "player" to name,
                                     "milestone" to Format.number(milestoneValue)
                                 )
 

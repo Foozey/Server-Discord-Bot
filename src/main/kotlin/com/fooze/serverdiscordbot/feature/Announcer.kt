@@ -31,7 +31,7 @@ object Announcer {
 
             // Placeholders
             val placeholders = mapOf(
-                "player" to Format.escape(name),
+                "player" to name,
                 "streak" to Format.number(streak.count)
             )
 
@@ -60,7 +60,7 @@ object Announcer {
             val server = handler.player.entityWorld.server
 
             // Placeholders
-            val placeholders = mapOf("player" to Format.escape(name))
+            val placeholders = mapOf("player" to name)
 
             val message = Format.replace(lang.announceLeave, placeholders)
 
@@ -81,7 +81,7 @@ object Announcer {
                 val placeholders = mapOf("deaths" to Format.number(deaths))
 
                 val description = Format.replace(lang.announceDeathDescription, placeholders)
-                val message = Format.escape(damageSource.getDeathMessage(entity).string)
+                val message = damageSource.getDeathMessage(entity).string
 
                 // Send death announcement
                 scope.launch {
