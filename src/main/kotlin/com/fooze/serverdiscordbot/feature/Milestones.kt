@@ -21,8 +21,8 @@ object Milestones {
 
     fun load(logger: Logger, scope: CoroutineScope, bot: Kord?, config: ModConfig, lang: LangConfig) {
         ServerTickEvents.END_SERVER_TICK.register { server ->
-            for (player in server.playerManager.playerList) {
-                val uuid = player.uuidAsString
+            for (player in server.playerList.players) {
+                val uuid = player.stringUUID
                 val name = player.name.string
                 val milestones = getMilestones(server, config, lang, name)
 
@@ -74,7 +74,7 @@ object Milestones {
 
     // Returns a list of milestones for the given player
     private fun getMilestones(server: MinecraftServer, config: ModConfig, lang: LangConfig, name: String): List<Milestone> {
-        val player = server.playerManager.getPlayer(name)
+        val player = server.playerList.getPlayer(name)
 
         if (player != null) {
             val stats = PlayerStats.get(server, player.gameProfile)

@@ -63,7 +63,7 @@ object StatusCommand : Command({ it.statusCommand }, { it.statusCommandInfo }) {
 
     // Returns the server's MSPT
     private fun getMspt(server: MinecraftServer): Double {
-        return server.tickTimes.average() / 1.0E6
+        return server.tickTimesNanos.average() / 1.0E6
     }
 
     // Returns the server's CPU usage
@@ -82,14 +82,14 @@ object StatusCommand : Command({ it.statusCommand }, { it.statusCommandInfo }) {
 
     // Returns the server's player count in online / max
     private fun getPlayerCount(server: MinecraftServer): String {
-        val current = server.playerManager.currentPlayerCount
-        val max = server.playerManager.maxPlayerCount
+        val current = server.playerCount
+        val max = server.maxPlayers
         return "${Format.number(current)} / ${Format.number(max)}"
     }
 
     // Returns the server's player list up to 20 players, then counts the remaining
     private fun getPlayerList(server: MinecraftServer, lang: LangConfig): String {
-        val players = server.playerManager.playerList
+        val players = server.playerList.players
         val max = 20
         val remaining = players.size - max
 

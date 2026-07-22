@@ -10,8 +10,8 @@ import dev.kord.rest.builder.interaction.ChatInputCreateBuilder
 import dev.kord.rest.builder.interaction.string
 import dev.kord.rest.builder.message.embed
 import net.minecraft.server.MinecraftServer
-import net.minecraft.server.PlayerConfigEntry
-import net.minecraft.server.WhitelistEntry
+import net.minecraft.server.players.NameAndId
+import net.minecraft.server.players.UserWhiteListEntry
 
 object WhitelistCommand : Command({ it.whitelistCommand }, { it.whitelistCommandInfo }) {
     override suspend fun run(
@@ -23,14 +23,14 @@ object WhitelistCommand : Command({ it.whitelistCommand }, { it.whitelistCommand
         if (server == null) return
 
         val response = event.interaction.deferPublicResponse()
-        val name = event.interaction.command.strings[lang.whitelistCommandPlayer]
-        val profile = server.apiServices.profileResolver.getProfileByName(name).orElse(null)
+        val name = event.interaction.command.strings[lang.whitelistCommandPlayer].toString()
+        val profile = server.services().profileResolver.fetchByName(name).orElse(null)
 
         // Placeholders
         val placeholders = mapOf(
             "server" to Format.serverName(config, lang, false),
             "type" to Format.serverType(server, config, lang),
-            "player" to Format.escape(name.toString())
+            "player" to Format.escape(name)
         )
 
         // Build the embed
@@ -43,14 +43,14 @@ object WhitelistCommand : Command({ it.whitelistCommand }, { it.whitelistCommand
                 }
 
                 // If the player is already whitelisted, send a warning message
-                else if (server.playerManager.whitelist.isAllowed(PlayerConfigEntry(profile))) {
+                else if (server.playerList.whiteList.isWhiteListed(NameAndId(profile))) {
                     description = Format.replace(lang.whitelistExisting, placeholders)
                     color = Colors.YELLOW
                 }
 
                 // Add the player to the whitelist and send a success message
                 else {
-                    server.playerManager.whitelist.add(WhitelistEntry(PlayerConfigEntry(profile)))
+                    server.playerList.whiteList.add(UserWhiteListEntry(NameAndId(profile)))
 
                     title = Format.replace(lang.whitelistAddTitle, placeholders)
                     description = Format.replace(lang.whitelistAddDescription, placeholders)

@@ -36,8 +36,8 @@ object LeaderboardCommand : Command({ it.leaderboardCommand }, { it.leaderboardC
         val players = mutableSetOf<UUID>()
 
         // If the stats folder exists, add all player UUIDs to the set
-        val world = server.saveProperties.levelName
-        val folder = server.runDirectory.resolve("${world}/stats")
+        val world = server.worldData.levelName
+        val folder = server.serverDirectory.resolve("${world}/players/stats")
 
         if (folder.exists()) {
             for (file in folder.listDirectoryEntries()) {
@@ -48,7 +48,7 @@ object LeaderboardCommand : Command({ it.leaderboardCommand }, { it.leaderboardC
         }
 
         // Add all online player UUIDs to the set
-        for (player in server.playerManager.playerList) {
+        for (player in server.playerList.players) {
             players.add(player.uuid)
         }
 
@@ -67,7 +67,7 @@ object LeaderboardCommand : Command({ it.leaderboardCommand }, { it.leaderboardC
         // Get player stats using the UUIDs in the player set
         val playerStats = players.mapNotNull { uuid ->
             runCatching {
-                val profile = server.apiServices.profileResolver.getProfileById(uuid).orElse(null)
+                val profile = server.services().profileResolver.fetchById(uuid).get()
                 profile.name to statValue(PlayerStats.get(server, profile))
             }.getOrNull()
         }

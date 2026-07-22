@@ -1,7 +1,7 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-	id 'fabric-loom' version "${loom_version}"
+	id 'net.fabricmc.fabric-loom' version "${loom_version}"
 	id 'maven-publish'
 	id 'org.jetbrains.kotlin.jvm' version "${kotlin_version}"
 	id 'org.jetbrains.kotlin.plugin.serialization' version "${kotlin_version}"
@@ -11,21 +11,26 @@ plugins {
 version = project.mod_version
 group = project.maven_group
 
-base {
-	archivesName = project.archives_base_name
-}
-
 repositories {
 	// Add repositories here
+}
+
+loom {
+	splitEnvironmentSourceSets()
+
+	mods {
+		"server-discord-bot" {
+			sourceSet sourceSets.main
+		}
+	}
 }
 
 dependencies {
 	// Fabric
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
-    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
-    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
-	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-	modImplementation "net.fabricmc:fabric-language-kotlin:${project.fabric_kotlin_version}"
+    implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+	implementation "net.fabricmc:fabric-language-kotlin:${project.fabric_kotlin_version}"
 
 	// Kotlin
 	implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:${project.kotlin_serialization_version}"
@@ -35,52 +40,47 @@ dependencies {
 }
 
 shadowJar {
-	archiveClassifier.set("shadow")
+	archiveClassifier.set("")
 	configurations = [project.configurations.shadow]
 	relocate("dev.kord", "shadow.dev.kord")
 	relocate("kotlinx.coroutines", "shadow.kotlinx.coroutines")
 	relocate("kotlinx.serialization", "shadow.kotlinx.serialization")
 }
 
-remapJar {
-    dependsOn("shadowJar")
-	inputFile.set(shadowJar.archiveFile)
-}
-
-tasks.named("remapJar") {
-    doLast {
-        shadowJar.archiveFile.get().asFile.delete()
-    }
+tasks.named("jar") {
+	enabled = false
 }
 
 processResources {
-	inputs.property "version", project.version
+	def version = project.version
+	inputs.property "version", version
 
 	filesMatching("fabric.mod.json") {
-		expand "version": inputs.properties.version
+		expand "version": version
 	}
 }
 
 tasks.withType(JavaCompile).configureEach {
-	it.options.release = 21
+	it.options.release = 25
 }
 
-tasks.withType(KotlinCompile).configureEach {
-	kotlinOptions {
-		jvmTarget = 21
+kotlin {
+	compilerOptions {
+		jvmTarget = JvmTarget.JVM_25
 	}
 }
 
 java {
-	sourceCompatibility = JavaVersion.VERSION_21
-	targetCompatibility = JavaVersion.VERSION_21
+	sourceCompatibility = JavaVersion.VERSION_25
+	targetCompatibility = JavaVersion.VERSION_25
 }
 
 jar {
-	inputs.property "archivesName", project.base.archivesName
+	def projectName = project.name
+	inputs.property "projectName", projectName
 
 	from("LICENSE") {
-		rename { "${it}_${inputs.properties.archivesName}"}
+		rename { "${it}_$projectName"}
 	}
 }
 
@@ -88,7 +88,6 @@ jar {
 publishing {
 	publications {
 		create("mavenJava", MavenPublication) {
-			artifactId = project.archives_base_name
 			from components.java
 		}
 	}

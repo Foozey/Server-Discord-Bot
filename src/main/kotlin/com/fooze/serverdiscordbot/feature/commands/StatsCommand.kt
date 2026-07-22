@@ -23,12 +23,12 @@ object StatsCommand : Command({ it.statsCommand }, { it.statsCommandInfo }) {
         if (server == null) return
 
         val response = event.interaction.deferPublicResponse()
-        val name = event.interaction.command.strings[lang.statsCommandPlayer]
-        val profile = server.apiServices.profileResolver.getProfileByName(name).orElse(null)
+        val name = event.interaction.command.strings[lang.statsCommandPlayer].toString()
+        val profile = server.services().profileResolver.fetchByName(name).orElse(null)
 
         // Placeholders
         val placeholders = mapOf(
-            "player" to Format.escape(name.toString()),
+            "player" to Format.escape(name),
             "server" to Format.serverName(config, lang, false),
             "time" to Instant.now().epochSecond.toString(),
             "stats" to lang.statsCommand,

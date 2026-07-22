@@ -17,8 +17,8 @@ import kotlinx.coroutines.launch
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents
 import net.minecraft.server.MinecraftServer
-import net.minecraft.server.network.ServerPlayerEntity
-import net.minecraft.stat.Stats
+import net.minecraft.server.level.ServerPlayer
+import net.minecraft.stats.Stats
 import org.slf4j.Logger
 
 object Announcer {
@@ -27,7 +27,7 @@ object Announcer {
         ServerPlayConnectionEvents.JOIN.register { handler, _, _ ->
             val name = handler.player.name.string
             val streak = StreakHandler.getStreak(logger, lang, name)
-            val server = handler.player.entityWorld.server
+            val server = handler.player.level().server
 
             // Placeholders
             val placeholders = mapOf(
@@ -57,7 +57,7 @@ object Announcer {
             if (ServerDiscordBot.stopping) return@register
 
             val name = handler.player.name.string
-            val server = handler.player.entityWorld.server
+            val server = handler.player.level().server
 
             // Placeholders
             val placeholders = mapOf("player" to name)
@@ -73,15 +73,15 @@ object Announcer {
 
         // On player death
         ServerLivingEntityEvents.AFTER_DEATH.register { entity, damageSource ->
-            if (entity is ServerPlayerEntity) {
+            if (entity is ServerPlayer) {
                 val name = entity.name.string
-                val deaths = entity.statHandler.getStat(Stats.CUSTOM.getOrCreateStat(Stats.DEATHS))
+                val deaths = entity.stats.getValue(Stats.CUSTOM.get(Stats.DEATHS))
 
                 // Placeholders
                 val placeholders = mapOf("deaths" to Format.number(deaths))
 
                 val description = Format.replace(lang.announceDeathDescription, placeholders)
-                val message = damageSource.getDeathMessage(entity).string
+                val message = damageSource.getLocalizedDeathMessage(entity).string
 
                 // Send death announcement
                 scope.launch {
@@ -160,7 +160,7 @@ object Announcer {
     private suspend fun updatePresence(bot: Kord?, server: MinecraftServer, lang: LangConfig) {
         if (bot == null) return
 
-        val count = server.playerManager.currentPlayerCount
+        val count = server.playerCount
 
         // Use a plural if there are multiple players online
         val template = if (count == 1) {

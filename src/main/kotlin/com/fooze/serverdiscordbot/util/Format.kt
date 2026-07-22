@@ -25,7 +25,7 @@ object Format {
         val hasUrl = config.serverModpackUrl.isNotBlank()
 
         // Placeholders
-        val placeholders = mapOf("version" to server.version)
+        val placeholders = mapOf("version" to server.serverVersion)
 
         val serverType = when {
             hasName && hasVersion -> escape("${config.serverModpackName} ${config.serverModpackVersion}")
@@ -40,13 +40,13 @@ object Format {
         }
     }
 
-    // Formats a number with thousands separators
+    // Formats a number with thousand separators
     fun number(value: Any) = String.format("%,d", value)
 
-    // Formats a number with thousands separators to 1 decimal place
+    // Formats a number with thousand separators to 1 decimal place
     fun decimal(value: Any) = String.format("%,.1f", value).removeSuffix(".0")
 
-    // Converts ticks to hours and formats the number with thousands separators to 1 decimal place
+    // Converts ticks to hours and formats the number with thousand separators to 1 decimal place
     fun hours(value: Int) = String.format("%,.1f", value / 72000.0).removeSuffix(".0") + " hours"
 
     // Replaces placeholders using values from a map

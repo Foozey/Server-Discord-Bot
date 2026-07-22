@@ -1,36 +1,36 @@
 package com.fooze.serverdiscordbot.util
 
 import com.mojang.authlib.GameProfile
-import net.minecraft.registry.DefaultedRegistry
-import net.minecraft.registry.Registries
+import net.minecraft.core.DefaultedRegistry
+import net.minecraft.core.registries.BuiltInRegistries
+import net.minecraft.resources.Identifier
 import net.minecraft.server.MinecraftServer
-import net.minecraft.stat.ServerStatHandler
-import net.minecraft.stat.StatType
-import net.minecraft.stat.Stats
-import net.minecraft.util.Identifier
+import net.minecraft.stats.ServerStatsCounter
+import net.minecraft.stats.StatType
+import net.minecraft.stats.Stats
 
 object PlayerStats {
     // Returns a player's stats
     fun get(server: MinecraftServer, profile: GameProfile): PlayerStats {
-        val player = server.playerManager.getPlayer(profile.name)
+        val player = server.playerList.getPlayer(profile.name)
 
         // If the player is online, use their server stats, otherwise use the stat file
-        val statHandler = if (player != null) {
-            player.statHandler
+        val statCounter = if (player != null) {
+            player.stats
         } else {
-            val world = server.saveProperties.levelName
-            val file = server.runDirectory.resolve("${world}/stats/${profile.id}.json").toFile()
-            ServerStatHandler(server, file)
+            val world = server.worldData.levelName
+            val file = server.serverDirectory.resolve("${world}/players/stats/${profile.id}.json").toFile()
+            ServerStatsCounter(server, file.toPath())
         }
 
         return PlayerStats(
-            deaths = getStat(statHandler, Stats.DEATHS),
-            playerKills = getStat(statHandler, Stats.PLAYER_KILLS),
-            mobKills = getStat(statHandler, Stats.MOB_KILLS),
-            blocksMined = getTotal(statHandler, Registries.BLOCK, Stats.MINED) { it },
-            blocksPlaced = getTotal(statHandler, Registries.BLOCK, Stats.USED) { it.asItem() },
-            itemsCrafted = getTotal(statHandler, Registries.ITEM, Stats.CRAFTED) { it },
-            timePlayed = getStat(statHandler, Stats.PLAY_TIME)
+            deaths = getStat(statCounter, Stats.DEATHS),
+            playerKills = getStat(statCounter, Stats.PLAYER_KILLS),
+            mobKills = getStat(statCounter, Stats.MOB_KILLS),
+            blocksMined = getTotal(statCounter, BuiltInRegistries.BLOCK, Stats.BLOCK_MINED) { it },
+            blocksPlaced = getTotal(statCounter, BuiltInRegistries.BLOCK, Stats.ITEM_USED) { it.asItem() },
+            itemsCrafted = getTotal(statCounter, BuiltInRegistries.ITEM, Stats.ITEM_CRAFTED) { it },
+            timePlayed = getStat(statCounter, Stats.PLAY_TIME)
         )
     }
 
@@ -46,13 +46,13 @@ object PlayerStats {
     )
 
     // Returns the value of the given stat
-    private fun getStat(statHandler: ServerStatHandler, stat: Identifier): Int {
-        return statHandler.getStat(Stats.CUSTOM.getOrCreateStat(stat))
+    private fun getStat(statHandler: ServerStatsCounter, stat: Identifier): Int {
+        return statHandler.getValue(Stats.CUSTOM.get(stat))
     }
 
     // Returns the total of the given stats
-    private fun <Entry, Stat> getTotal(
-        statHandler: ServerStatHandler,
+    private fun <Entry : Any, Stat : Any> getTotal(
+        statCounter: ServerStatsCounter,
         registry: DefaultedRegistry<Entry>,
         statType: StatType<Stat>,
         map: (Entry) -> Stat?
@@ -61,7 +61,7 @@ object PlayerStats {
             val stat = map(entry)
 
             if (stat != null) {
-                statHandler.getStat(statType.getOrCreateStat(stat))
+                statCounter.getValue(statType.get(stat))
             } else {
                 0
             }
