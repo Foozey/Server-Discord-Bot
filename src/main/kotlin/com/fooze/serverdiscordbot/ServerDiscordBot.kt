@@ -18,6 +18,7 @@ import net.fabricmc.api.DedicatedServerModInitializer
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents
 import net.minecraft.server.MinecraftServer
 import org.slf4j.LoggerFactory
+import java.util.concurrent.CountDownLatch
 import kotlin.time.ExperimentalTime
 
 object ServerDiscordBot : DedicatedServerModInitializer {
@@ -98,23 +99,30 @@ object ServerDiscordBot : DedicatedServerModInitializer {
         // On server stop
 		ServerLifecycleEvents.SERVER_STOPPING.register {
             stopping = true
+			val shutdownFinished = CountDownLatch(1)
 
-			runBlocking {
-                // Send stop announcement
-                Announcer.announceServerEvent(
-                    bot = bot,
-                    config = config,
-                    lang = lang,
-                    logger = logger,
-                    title = lang.announceStopTitle,
-                    description = lang.announceStopDescription,
-                    color = Colors.RED
-                )
+			scope.launch {
+				try {
+					// Send stop announcement
+					Announcer.announceServerEvent(
+						bot = bot,
+						config = config,
+						lang = lang,
+						logger = logger,
+						title = lang.announceStopTitle,
+						description = lang.announceStopDescription,
+						color = Colors.RED
+					)
 
-                // Stop the bot
-                bot?.shutdown()
-                bot?.resources?.httpClient?.close()
+					// Stop the bot
+					bot?.shutdown()
+					bot?.resources?.httpClient?.close()
+				} finally {
+					shutdownFinished.countDown()
+				}
 			}
+
+			shutdownFinished.await()
 		}
 	}
 
