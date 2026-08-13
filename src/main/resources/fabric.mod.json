@@ -3,7 +3,7 @@
 	"id": "server-discord-bot",
 	"version": "${version}",
 	"name": "Server Discord Bot",
-	"description": "A Minecraft mod that links your server with a discord bot.",
+	"description": "A Minecraft mod that links your server with a Discord bot.",
 	"authors": [
 		"Fooze"
 	],

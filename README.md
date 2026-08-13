@@ -1,5 +1,5 @@
 # Server Discord Bot
-A Minecraft mod that links your server with a discord bot.
+A Minecraft mod that links your server with a Discord bot.
 
 ## Features
 - Whitelisting
